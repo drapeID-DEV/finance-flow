@@ -18,8 +18,14 @@ class InstrumentService:
     async def get_active(
         self,
         session: AsyncSession,
+        page: int = 1,
+        page_size: int = 20,
     ) -> list[Instrument]:
-        return await self.repository.get_active(session)
+        return await self.repository.get_active(
+            session,
+            page=page,
+            page_size=page_size,
+        )
 
     async def create(
         self,

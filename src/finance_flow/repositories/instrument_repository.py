@@ -17,13 +17,19 @@ class InstrumentRepository:
         return result.scalar_one_or_none()
 
     async def get_active(
-        self,
-        session: AsyncSession,
+    self,
+    session: AsyncSession,
+    page: int = 1,
+    page_size: int = 20,
     ) -> list[Instrument]:
+        offset = (page - 1) * page_size
+
         result = await session.execute(
             select(Instrument)
             .where(Instrument.is_active.is_(True))
             .order_by(Instrument.code)
+            .offset(offset)
+            .limit(page_size)
         )
 
         return list(result.scalars().all())
