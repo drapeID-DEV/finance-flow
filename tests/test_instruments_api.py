@@ -2,7 +2,6 @@ from fastapi.testclient import TestClient
 
 from finance_flow.main import app
 
-
 client = TestClient(app)
 
 

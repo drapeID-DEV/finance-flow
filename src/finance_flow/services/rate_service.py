@@ -1,4 +1,4 @@
-from datetime import date, datetime, timezone
+from datetime import UTC, date, datetime
 from decimal import Decimal
 
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -46,7 +46,7 @@ class RateService:
             date=rate_date,
             rate=Decimal(nbu_rate.rate),
             unit=nbu_rate.unit,
-            created_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
         )
 
         return await self.rate_repository.add(session, rate)

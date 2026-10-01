@@ -5,7 +5,6 @@ from finance_flow.dependencies import get_db_session
 from finance_flow.repositories.instrument_repository import InstrumentRepository
 from finance_flow.services.instrument_service import InstrumentService
 
-
 router = APIRouter(prefix="/api/v1/instruments", tags=["instruments"])
 
 repository = InstrumentRepository()

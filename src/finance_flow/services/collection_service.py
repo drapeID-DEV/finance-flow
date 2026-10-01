@@ -3,7 +3,6 @@ from datetime import date
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from finance_flow.repositories.instrument_repository import InstrumentRepository
-from finance_flow.repositories.rate_repository import RateRepository
 from finance_flow.services.rate_service import RateService
 from finance_flow.sources.nbu import NbuSource
 

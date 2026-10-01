@@ -1,8 +1,7 @@
 from dataclasses import dataclass
+from decimal import Decimal
 
 import httpx
-
-from decimal import Decimal
 
 from finance_flow.config import get_settings
 

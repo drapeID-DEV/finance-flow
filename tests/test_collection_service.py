@@ -2,10 +2,8 @@ from datetime import date
 from decimal import Decimal
 
 import httpx
-from sqlalchemy import delete
 
 from finance_flow.database import async_session_factory
-from finance_flow.models.instrument import Instrument
 from finance_flow.repositories.instrument_repository import InstrumentRepository
 from finance_flow.repositories.rate_repository import RateRepository
 from finance_flow.services.collection_service import CollectionService
@@ -44,19 +42,12 @@ async def test_collect_rates() -> None:
         )
 
         async with async_session_factory() as session:
-            await session.execute(
-                delete(Instrument).where(Instrument.code == "COLL01")
+            instrument = await instrument_repository.get_by_code(
+                session,
+                "COLL01",
             )
-            await session.commit()
 
-            instrument = Instrument(
-                code="COLL01",
-                name="Test Dollar",
-                type="currency",
-                is_active=True,
-            )
-            await instrument_repository.add(session, instrument)
-            await session.commit()
+            assert instrument is not None
 
             saved_count = await collection_service.collect(
                 session,

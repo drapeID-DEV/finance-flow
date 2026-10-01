@@ -1,6 +1,6 @@
-import httpx
-
 from decimal import Decimal
+
+import httpx
 
 from finance_flow.sources.nbu import NbuSource
 

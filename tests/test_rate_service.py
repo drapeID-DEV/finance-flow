@@ -1,11 +1,7 @@
 from datetime import date
-
 from decimal import Decimal
 
-from sqlalchemy import delete
-
 from finance_flow.database import async_session_factory
-from finance_flow.models.instrument import Instrument
 from finance_flow.repositories.instrument_repository import InstrumentRepository
 from finance_flow.repositories.rate_repository import RateRepository
 from finance_flow.services.rate_service import RateService
@@ -22,17 +18,12 @@ async def test_save_rate() -> None:
     )
 
     async with async_session_factory() as session:
-        await session.execute(
-            delete(Instrument).where(Instrument.code == "RTST01")
+        instrument = await instrument_repository.get_by_code(
+            session,
+            "RTST01",
         )
-        await session.commit()
 
-        instrument = Instrument(
-            code="RTST01",
-            name="Test Dollar",
-            type="currency",
-            is_active=True,
-        )
+        assert instrument is not None
 
         await instrument_repository.add(session, instrument)
 
