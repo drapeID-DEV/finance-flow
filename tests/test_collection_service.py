@@ -2,11 +2,14 @@ from datetime import date
 from decimal import Decimal
 
 import httpx
+from sqlalchemy import delete
 
 from finance_flow.database import async_session_factory
+from finance_flow.models.rate import Rate
 from finance_flow.repositories.instrument_repository import InstrumentRepository
 from finance_flow.repositories.rate_repository import RateRepository
 from finance_flow.services.collection_service import CollectionService
+from finance_flow.services.instrument_service import InstrumentService
 from finance_flow.services.rate_service import RateService
 from finance_flow.sources.nbu import NbuSource
 
@@ -35,10 +38,14 @@ async def test_collect_rates() -> None:
             rate_repository=rate_repository,
             instrument_repository=instrument_repository,
         )
+        instrument_service = InstrumentService(
+            repository=instrument_repository,
+        )
+
         collection_service = CollectionService(
             source=source,
             rate_service=rate_service,
-            instrument_repository=instrument_repository,
+            instrument_service=instrument_service,
         )
 
         async with async_session_factory() as session:
@@ -48,6 +55,14 @@ async def test_collect_rates() -> None:
             )
 
             assert instrument is not None
+
+            await session.execute(
+                delete(Rate).where(
+                    Rate.instrument_id == instrument.id,
+                    Rate.date == date(2026, 10, 1),
+                )
+            )
+            await session.commit()
 
             saved_count = await collection_service.collect(
                 session,
@@ -64,4 +79,4 @@ async def test_collect_rates() -> None:
 
             assert saved_rate is not None
             assert saved_rate.rate == Decimal("41.25")
-            assert saved_rate.unit == 840
+            assert saved_rate.unit == 1

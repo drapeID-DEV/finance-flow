@@ -1,7 +1,10 @@
 from datetime import date
 from decimal import Decimal
 
+from sqlalchemy import delete
+
 from finance_flow.database import async_session_factory
+from finance_flow.models.rate import Rate
 from finance_flow.repositories.instrument_repository import InstrumentRepository
 from finance_flow.repositories.rate_repository import RateRepository
 from finance_flow.services.rate_service import RateService
@@ -25,7 +28,13 @@ async def test_save_rate() -> None:
 
         assert instrument is not None
 
-        await instrument_repository.add(session, instrument)
+        await session.execute(
+            delete(Rate).where(
+                Rate.instrument_id == instrument.id,
+                Rate.date == date(2026, 10, 1),
+            )
+        )
+        await session.commit()
 
         nbu_rate = NbuRate(
             code="RTST01",
@@ -52,8 +61,7 @@ async def test_save_rate() -> None:
             date(2026, 10, 1),
         )
 
-        assert saved_again is not None
-        assert saved_again.id == saved.id
+        assert saved_again is None     
 
         saved_rates = await rate_repository.get_by_instrument_and_date(
             session,

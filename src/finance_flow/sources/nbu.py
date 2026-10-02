@@ -2,8 +2,16 @@ from dataclasses import dataclass
 from decimal import Decimal
 
 import httpx
+from pydantic import BaseModel
 
 from finance_flow.config import get_settings
+
+
+class NbuRateResponse(BaseModel):
+    r030: int
+    txt: str
+    rate: Decimal
+    cc: str
 
 
 @dataclass(frozen=True, slots=True)
@@ -20,7 +28,7 @@ class NbuSource:
         self.client = client
 
     async def get_rates(self, date: str) -> list[NbuRate]:
-        url = f"{self.base_url}/exchange"
+        url = f"{self.base_url}/statdirectory/exchangenew"
 
         response = await self.client.get(
             url,
@@ -31,14 +39,14 @@ class NbuSource:
         )
         response.raise_for_status()
 
-        data = response.json()
+        data = [NbuRateResponse.model_validate(item) for item in response.json()]
 
         return [
             NbuRate(
-                code=item["cc"],
-                name=item["txt"],
-                rate=Decimal(str(item["rate"])),
-                unit=item["r030"],
+                code=item.cc,
+                name=item.txt,
+                rate=item.rate,
+                unit=1,
             )
             for item in data
         ]

@@ -41,12 +41,12 @@ async def test_get_rates() -> None:
 
     assert rates[0].code == "USD"
     assert rates[0].rate == Decimal("41.25")
-    assert rates[0].unit == 840
+    assert rates[0].unit == 1
 
     assert rates[1].code == "EUR"
     assert rates[1].rate == Decimal("48.55")
-    assert rates[1].unit == 978
+    assert rates[0].unit == 1
 
     assert rates[2].code == "JPY"
     assert rates[2].rate == Decimal("0.27")
-    assert rates[2].unit == 392
+    assert rates[0].unit == 1

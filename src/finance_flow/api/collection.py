@@ -8,6 +8,7 @@ from finance_flow.dependencies import get_db_session
 from finance_flow.repositories.instrument_repository import InstrumentRepository
 from finance_flow.repositories.rate_repository import RateRepository
 from finance_flow.services.collection_service import CollectionService
+from finance_flow.services.instrument_service import InstrumentService
 from finance_flow.services.rate_service import RateService
 from finance_flow.sources.nbu import NbuSource
 
@@ -19,7 +20,7 @@ router = APIRouter(
 
 @router.post("/run")
 async def run_collection(
-    rate_date: date = Query(...),
+    collection_date: date = Query(..., alias="date"),
     session: AsyncSession = Depends(get_db_session),
 ) -> dict[str, int]:
     async with httpx.AsyncClient() as client:
@@ -33,15 +34,16 @@ async def run_collection(
             instrument_repository=instrument_repository,
         )
 
+        instrument_service = InstrumentService(
+            repository=instrument_repository,
+        )
+
         collection_service = CollectionService(
             source=source,
             rate_service=rate_service,
-            instrument_repository=instrument_repository,
+            instrument_service=instrument_service,
         )
 
-        saved_count = await collection_service.collect(
-            session,
-            rate_date,
-        )
+        saved_count = await collection_service.collect(session, collection_date)
 
     return {"saved_count": saved_count}

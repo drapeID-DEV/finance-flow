@@ -39,7 +39,7 @@ class RateService:
         )
 
         if existing is not None:
-            return existing
+            return None
 
         rate = Rate(
             instrument_id=instrument.id,
