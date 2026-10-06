@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import UTC, date, datetime
 from decimal import Decimal
 
 from sqlalchemy import delete
@@ -71,3 +71,78 @@ async def test_save_rate() -> None:
 
         assert saved_rates is not None
         assert saved_rates.id == saved.id
+
+
+async def test_get_aggregated_history() -> None:
+    instrument_repository = InstrumentRepository()
+    rate_repository = RateRepository()
+
+    service = RateService(
+        rate_repository=rate_repository,
+        instrument_repository=instrument_repository,
+    )
+
+    async with async_session_factory() as session:
+        instrument = await instrument_repository.get_by_code(
+            session,
+            "RTST01",
+        )
+
+        assert instrument is not None
+
+        await session.execute(
+            delete(Rate).where(
+                Rate.instrument_id == instrument.id,
+                Rate.date >= date(2026, 9, 28),
+                Rate.date <= date(2026, 9, 30),
+            )
+        )
+        await session.commit()
+
+        test_rates = [
+            Rate(
+                instrument_id=instrument.id,
+                date=date(2026, 9, 28),
+                rate=Decimal("40"),
+                unit=1,
+                created_at=datetime.now(UTC),
+            ),
+            Rate(
+                instrument_id=instrument.id,
+                date=date(2026, 9, 29),
+                rate=Decimal("42"),
+                unit=1,
+                created_at=datetime.now(UTC),
+            ),
+            Rate(
+                instrument_id=instrument.id,
+                date=date(2026, 9, 30),
+                rate=Decimal("41"),
+                unit=1,
+                created_at=datetime.now(UTC),
+            ),
+        ]
+
+        for rate in test_rates:
+            await rate_repository.add(session, rate)
+
+        await session.commit()
+
+        result = await service.get_aggregated_history(
+            session,
+            instrument_code="RTST01",
+            from_date=date(2026, 9, 28),
+            to_date=date(2026, 9, 30),
+            aggregation="week",
+        )
+
+        assert len(result) == 1
+
+        period = result[0]
+
+        assert period["open"] == Decimal("40")
+        assert period["close"] == Decimal("41")
+        assert period["min"] == Decimal("40")
+        assert period["max"] == Decimal("42")
+        assert period["avg"] == Decimal("41")
+        assert period["unit"] == 1

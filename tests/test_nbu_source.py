@@ -50,3 +50,16 @@ async def test_get_rates() -> None:
     assert rates[2].code == "JPY"
     assert rates[2].rate == Decimal("0.27")
     assert rates[0].unit == 1
+
+
+async def test_get_rates_returns_empty_for_missing_date() -> None:
+    transport = httpx.MockTransport(
+        lambda request: httpx.Response(404),
+    )
+
+    async with httpx.AsyncClient(transport=transport) as client:
+        source = NbuSource(client)
+
+        rates = await source.get_rates("20261004")
+
+    assert rates == []

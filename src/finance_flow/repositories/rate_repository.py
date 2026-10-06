@@ -21,6 +21,24 @@ class RateRepository:
         )
         return result.scalar_one_or_none()
 
+    async def get_history(
+        self,
+        session: AsyncSession,
+        instrument_id: int,
+        from_date: date,
+        to_date: date,
+    ) -> list[Rate]:
+        result = await session.execute(
+            select(Rate)
+            .where(
+                Rate.instrument_id == instrument_id,
+                Rate.date >= from_date,
+                Rate.date <= to_date,
+            )
+            .order_by(Rate.date.asc())
+        )
+        return list(result.scalars().all())
+
     async def add(
         self,
         session: AsyncSession,

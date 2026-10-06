@@ -19,3 +19,22 @@ def test_get_instruments_with_page() -> None:
 
     assert response.status_code == 200
     assert isinstance(response.json(), list)
+
+
+def test_get_instrument_rate_history() -> None:
+    response = client.get(
+        "/api/v1/instruments/USD/rates"
+        "?from=2026-10-01&to=2026-10-02"
+    )
+
+    assert response.status_code == 200
+
+    data = response.json()
+
+    assert isinstance(data, list)
+    assert len(data) >= 1
+
+    rate = data[-1]
+
+    assert rate["date"] == "2026-10-02"
+    assert rate["unit"] == 1

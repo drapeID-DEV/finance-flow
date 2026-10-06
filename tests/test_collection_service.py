@@ -80,3 +80,35 @@ async def test_collect_rates() -> None:
             assert saved_rate is not None
             assert saved_rate.rate == Decimal("41.25")
             assert saved_rate.unit == 1
+
+async def test_collect_without_rates() -> None:
+    transport = httpx.MockTransport(
+        lambda request: httpx.Response(404),
+    )
+
+    async with httpx.AsyncClient(transport=transport) as client:
+        source = NbuSource(client)
+
+        instrument_repository = InstrumentRepository()
+        rate_repository = RateRepository()
+        rate_service = RateService(
+            rate_repository=rate_repository,
+            instrument_repository=instrument_repository,
+        )
+        instrument_service = InstrumentService(
+            repository=instrument_repository,
+        )
+
+        collection_service = CollectionService(
+            source=source,
+            rate_service=rate_service,
+            instrument_service=instrument_service,
+        )
+
+        async with async_session_factory() as session:
+            saved_count = await collection_service.collect(
+                session,
+                date(2026, 10, 4),
+            )
+
+            assert saved_count == 0
