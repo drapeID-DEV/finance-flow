@@ -5,8 +5,10 @@ from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from finance_flow.dependencies import get_db_session
+from finance_flow.repositories.alert_repository import AlertRepository
 from finance_flow.repositories.instrument_repository import InstrumentRepository
 from finance_flow.repositories.rate_repository import RateRepository
+from finance_flow.services.alert_service import AlertService
 from finance_flow.services.collection_service import CollectionService
 from finance_flow.services.instrument_service import InstrumentService
 from finance_flow.services.rate_service import RateService
@@ -27,11 +29,11 @@ async def run_collection(
         source = NbuSource(client)
 
         instrument_repository = InstrumentRepository()
-        rate_repository = RateRepository()
 
         rate_service = RateService(
-            rate_repository=rate_repository,
-            instrument_repository=instrument_repository,
+            RateRepository(),
+            InstrumentRepository(),
+            AlertService(AlertRepository()),
         )
 
         instrument_service = InstrumentService(

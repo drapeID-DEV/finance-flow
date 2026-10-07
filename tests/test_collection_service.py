@@ -6,8 +6,10 @@ from sqlalchemy import delete
 
 from finance_flow.database import async_session_factory
 from finance_flow.models.rate import Rate
+from finance_flow.repositories.alert_repository import AlertRepository
 from finance_flow.repositories.instrument_repository import InstrumentRepository
 from finance_flow.repositories.rate_repository import RateRepository
+from finance_flow.services.alert_service import AlertService
 from finance_flow.services.collection_service import CollectionService
 from finance_flow.services.instrument_service import InstrumentService
 from finance_flow.services.rate_service import RateService
@@ -34,9 +36,13 @@ async def test_collect_rates() -> None:
 
         instrument_repository = InstrumentRepository()
         rate_repository = RateRepository()
+        alert_repository = AlertRepository()
+        alert_service = AlertService(alert_repository)
+
         rate_service = RateService(
             rate_repository=rate_repository,
             instrument_repository=instrument_repository,
+            alert_service=alert_service,
         )
         instrument_service = InstrumentService(
             repository=instrument_repository,
@@ -91,9 +97,13 @@ async def test_collect_without_rates() -> None:
 
         instrument_repository = InstrumentRepository()
         rate_repository = RateRepository()
+        alert_repository = AlertRepository()
+        alert_service = AlertService(alert_repository)
+
         rate_service = RateService(
             rate_repository=rate_repository,
             instrument_repository=instrument_repository,
+            alert_service=alert_service,
         )
         instrument_service = InstrumentService(
             repository=instrument_repository,
