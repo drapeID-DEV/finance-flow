@@ -1,5 +1,8 @@
 
-from fastapi import APIRouter, Depends
+from decimal import Decimal
+
+from fastapi import APIRouter, Depends, HTTPException
+from pydantic import BaseModel, Field
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from finance_flow.dependencies import get_current_user, get_db_session
@@ -17,6 +20,9 @@ portfolio_service = PortfolioService(
     PortfolioRepository(),
     RateRepository(),
 )
+
+class UpdatePortfolioItemRequest(BaseModel):
+    quantity: Decimal = Field(gt=0)
 
 
 @router.get("")
@@ -50,4 +56,58 @@ async def get_portfolio(
             }
             for item in items
         ],
+    }
+
+
+@router.put("/items/{instrument_id}")
+async def update_portfolio_item(
+    instrument_id: int,
+    request: UpdatePortfolioItemRequest,
+    current_user: User = Depends(get_current_user),
+    session: AsyncSession = Depends(get_db_session),
+) -> dict[str, object]:
+    try:
+        item = await portfolio_service.update_item_quantity(
+            session,
+            user_id=current_user.id,
+            instrument_id=instrument_id,
+            quantity=request.quantity,
+        )
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=404,
+            detail=str(exc),
+        ) from exc
+
+    await session.commit()
+
+    return {
+        "instrument_id": item.instrument_id,
+        "quantity": item.quantity,
+    }
+
+
+@router.delete("/items/{instrument_id}")
+async def delete_portfolio_item(
+    instrument_id: int,
+    current_user: User = Depends(get_current_user),
+    session: AsyncSession = Depends(get_db_session),
+) -> dict[str, object]:
+    try:
+        await portfolio_service.delete_item(
+            session,
+            user_id=current_user.id,
+            instrument_id=instrument_id,
+        )
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=404,
+            detail=str(exc),
+        ) from exc
+
+    await session.commit()
+
+    return {
+        "message": "Portfolio item deleted",
+        "instrument_id": instrument_id,
     }

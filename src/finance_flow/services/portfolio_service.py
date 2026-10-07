@@ -88,6 +88,61 @@ class PortfolioService:
             item,
         )
 
+    async def update_item_quantity(
+        self,
+        session: AsyncSession,
+        user_id: int,
+        instrument_id: int,
+        quantity: Decimal,
+    ) -> PortfolioItem:
+        if quantity <= 0:
+            raise ValueError("Quantity must be greater than zero")
+
+        portfolio = await self.get_or_create(
+            session,
+            user_id,
+        )
+
+        item = await self.repository.get_item(
+            session,
+            portfolio.id,
+            instrument_id,
+        )
+
+        if item is None:
+            raise ValueError("Instrument is not in portfolio")
+
+        return await self.repository.update_item_quantity(
+            session,
+            item,
+            quantity,
+        )
+
+    async def delete_item(
+        self,
+        session: AsyncSession,
+        user_id: int,
+        instrument_id: int,
+    ) -> None:
+        portfolio = await self.get_or_create(
+            session,
+            user_id,
+        )
+
+        item = await self.repository.get_item(
+            session,
+            portfolio.id,
+            instrument_id,
+        )
+
+        if item is None:
+            raise ValueError("Instrument is not in portfolio")
+
+        await self.repository.delete_item(
+            session,
+            item,
+        )
+
     async def calculate_total_value(
         self,
         session: AsyncSession,

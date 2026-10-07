@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -59,3 +61,21 @@ class PortfolioRepository:
         session.add(item)
         await session.flush()
         return item
+
+    async def update_item_quantity(
+        self,
+        session: AsyncSession,
+        item: PortfolioItem,
+        quantity: Decimal,
+    ) -> PortfolioItem:
+        item.quantity = quantity
+        await session.flush()
+        return item
+
+    async def delete_item(
+        self,
+        session: AsyncSession,
+        item: PortfolioItem,
+    ) -> None:
+        await session.delete(item)
+        await session.flush()
