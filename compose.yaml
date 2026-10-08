@@ -12,5 +12,18 @@ services:
         volumes:
             - postgres_data:/var/lib/postgresql/data
 
+    api:
+        build: .
+        container_name: finance-flow-api
+        restart: unless-stopped
+        environment:
+            DATABASE_URL: postgresql+asyncpg://finance_flow:finance_flow_dev@postgres:5432/finance_flow
+            NBU_BASE_URL: https://bank.gov.ua/NBUStatService/v1
+            JWT_SECRET: ${JWT_SECRET}
+        ports:
+            - '8000:8000'
+        depends_on:
+            - postgres
+
 volumes:
     postgres_data:

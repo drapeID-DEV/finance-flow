@@ -15,7 +15,7 @@ if config.config_file_name is not None:
 settings = get_settings()
 
 database_url = settings.database_url.replace(
-    "postgresql+psycopg://",
+    "postgresql+asyncpg://",
     "postgresql+psycopg://",
 )
 
