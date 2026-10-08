@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Response, status
 from pydantic import BaseModel, EmailStr
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -32,8 +32,7 @@ class LoginRequest(BaseModel):
 
 
 class LoginResponse(BaseModel):
-    access_token: str
-    token_type: str
+    message: str
 
 
 @router.post(
@@ -69,6 +68,7 @@ async def register(
 @router.post("/login", response_model=LoginResponse)
 async def login(
     data: LoginRequest,
+    response: Response,
     session: AsyncSession = Depends(get_db_session),
 ) -> LoginResponse:
     user = await repository.get_by_email(
@@ -93,10 +93,29 @@ async def login(
 
     access_token = create_access_token(user.id)
 
-    return LoginResponse(
-        access_token=access_token,
-        token_type="bearer",
+    response.set_cookie(
+        key="access_token",
+        value=access_token,
+        httponly=True,
+        secure=False,
+        samesite="lax",
+        max_age=60 * 60,
     )
+
+    return LoginResponse(
+        message="Login successful",
+    )
+
+
+@router.post("/logout")
+async def logout(response: Response) -> dict[str, str]:
+    response.delete_cookie(
+        key="access_token",
+        httponly=True,
+        samesite="lax",
+    )
+
+    return {"message": "Logout successful"}
 
 
 @router.get("/me")

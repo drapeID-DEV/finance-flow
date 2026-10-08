@@ -47,8 +47,11 @@ def test_login() -> None:
 
     data = response.json()
 
-    assert isinstance(data["access_token"], str)
-    assert data["token_type"] == "bearer"
+    assert response.status_code == 200
+    assert data["message"] == "Login successful"
+
+    assert "access_token" in response.cookies
+    assert response.cookies["access_token"]
 
 
 def test_login_with_wrong_password() -> None:
@@ -61,3 +64,36 @@ def test_login_with_wrong_password() -> None:
     )
 
     assert response.status_code == 401
+
+
+def test_logout() -> None:
+    response = client.post("/api/v1/auth/logout")
+
+    assert response.status_code == 200
+    assert response.json()["message"] == "Logout successful"
+
+
+def test_auth_with_cookie() -> None:
+    client.post(
+        "/api/v1/auth/register",
+        json={
+            "email": "cookie-test@example.com",
+            "password": "test-password",
+        },
+    )
+
+    login_response = client.post(
+        "/api/v1/auth/login",
+        json={
+            "email": "cookie-test@example.com",
+            "password": "test-password",
+        },
+    )
+
+    assert login_response.status_code == 200
+    assert "access_token" in client.cookies
+
+    me_response = client.get("/api/v1/auth/me")
+
+    assert me_response.status_code == 200
+    assert me_response.json()["email"] == "cookie-test@example.com"

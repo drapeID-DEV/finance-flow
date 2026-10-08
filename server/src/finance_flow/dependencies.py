@@ -1,7 +1,7 @@
 from collections.abc import AsyncGenerator
 
-from fastapi import Depends, HTTPException, status
-from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from fastapi import Cookie, Depends, HTTPException, status
+from fastapi.security import HTTPBearer
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from finance_flow.auth import decode_access_token
@@ -20,10 +20,16 @@ user_repository = UserRepository()
 
 
 async def get_current_user(
-    credentials: HTTPAuthorizationCredentials = Depends(security),
+    access_token: str | None = Cookie(default=None),
     session: AsyncSession = Depends(get_db_session),
 ) -> User:
-    user_id = decode_access_token(credentials.credentials)
+    if access_token is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Authentication required",
+        )
+
+    user_id = decode_access_token(access_token)
 
     if user_id is None:
         raise HTTPException(
@@ -31,10 +37,7 @@ async def get_current_user(
             detail="Invalid or expired token",
         )
 
-    user = await user_repository.get_by_id(
-        session,
-        user_id,
-    )
+    user = await user_repository.get_by_id(session, user_id)
 
     if user is None or not user.is_active:
         raise HTTPException(

@@ -48,8 +48,7 @@ async def test_create_alert() -> None:
     )
 
     assert login_response.status_code == 200
-
-    token = login_response.json()["access_token"]
+    assert "access_token" in client.cookies
 
     async with async_session_factory() as session:
         instrument = Instrument(
@@ -66,9 +65,6 @@ async def test_create_alert() -> None:
 
     response = client.post(
         "/api/v1/alerts",
-        headers={
-            "Authorization": f"Bearer {token}",
-        },
         json={
             "instrument_id": instrument_id,
             "direction": "above",
@@ -110,8 +106,7 @@ async def test_get_alerts_returns_only_current_user_alerts() -> None:
     )
 
     assert login_response.status_code == 200
-
-    token = login_response.json()["access_token"]
+    assert "access_token" in client.cookies
 
     async with async_session_factory() as session:
         instrument = Instrument(
@@ -128,9 +123,6 @@ async def test_get_alerts_returns_only_current_user_alerts() -> None:
 
     create_response = client.post(
         "/api/v1/alerts",
-        headers={
-            "Authorization": f"Bearer {token}",
-        },
         json={
             "instrument_id": instrument_id,
             "direction": "below",
@@ -140,12 +132,7 @@ async def test_get_alerts_returns_only_current_user_alerts() -> None:
 
     assert create_response.status_code == 201
 
-    response = client.get(
-        "/api/v1/alerts",
-        headers={
-            "Authorization": f"Bearer {token}",
-        },
-    )
+    response = client.get("/api/v1/alerts")
 
     assert response.status_code == 200
 

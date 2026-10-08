@@ -123,13 +123,8 @@ def test_update_instrument_status_requires_admin() -> None:
 
     assert login_response.status_code == 200
 
-    token = login_response.json()["access_token"]
-
     response = client.patch(
         "/api/v1/instruments/USD/status",
-        headers={
-            "Authorization": f"Bearer {token}",
-        },
         json={
             "is_active": False,
         },
@@ -173,13 +168,8 @@ async def test_admin_can_update_instrument_status() -> None:
 
     assert login_response.status_code == 200
 
-    token = login_response.json()["access_token"]
-
     response = client.patch(
         "/api/v1/instruments/USD/status",
-        headers={
-            "Authorization": f"Bearer {token}",
-        },
         json={
             "is_active": False,
         },
@@ -194,9 +184,6 @@ async def test_admin_can_update_instrument_status() -> None:
 
     restore_response = client.patch(
         "/api/v1/instruments/USD/status",
-        headers={
-            "Authorization": f"Bearer {token}",
-        },
         json={
             "is_active": True,
         },
@@ -239,13 +226,8 @@ async def test_admin_update_unknown_instrument() -> None:
 
     assert login_response.status_code == 200
 
-    token = login_response.json()["access_token"]
-
     response = client.patch(
         "/api/v1/instruments/UNKNOWN/status",
-        headers={
-            "Authorization": f"Bearer {token}",
-        },
         json={
             "is_active": False,
         },

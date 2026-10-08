@@ -48,14 +48,7 @@ def test_get_portfolio() -> None:
 
     assert login_response.status_code == 200
 
-    token = login_response.json()["access_token"]
-
-    response = client.get(
-        "/api/v1/portfolio",
-        headers={
-            "Authorization": f"Bearer {token}",
-        },
-    )
+    response = client.get("/api/v1/portfolio")
 
     assert response.status_code == 200
 
@@ -90,8 +83,6 @@ async def test_get_portfolio_with_item() -> None:
     )
 
     assert login_response.status_code == 200
-
-    token = login_response.json()["access_token"]
 
     async with async_session_factory() as session:
         user_result = await session.execute(
@@ -131,12 +122,7 @@ async def test_get_portfolio_with_item() -> None:
 
         await session.commit()
 
-    response = client.get(
-        "/api/v1/portfolio",
-        headers={
-            "Authorization": f"Bearer {token}",
-        },
-    )
+    response = client.get("/api/v1/portfolio")
 
     assert response.status_code == 200
 
@@ -173,8 +159,6 @@ async def test_update_portfolio_item_quantity() -> None:
 
     assert login_response.status_code == 200
 
-    token = login_response.json()["access_token"]
-
     async with async_session_factory() as session:
         user_result = await session.execute(
             select(User).where(User.email == email)
@@ -208,9 +192,6 @@ async def test_update_portfolio_item_quantity() -> None:
 
     response = client.put(
         f"/api/v1/portfolio/items/{instrument_id}",
-        headers={
-            "Authorization": f"Bearer {token}",
-        },
         json={
             "quantity": "25",
         },
@@ -249,8 +230,6 @@ async def test_delete_portfolio_item() -> None:
 
     assert login_response.status_code == 200
 
-    token = login_response.json()["access_token"]
-
     async with async_session_factory() as session:
         user_result = await session.execute(
             select(User).where(User.email == email)
@@ -284,9 +263,6 @@ async def test_delete_portfolio_item() -> None:
 
     response = client.delete(
         f"/api/v1/portfolio/items/{instrument_id}",
-        headers={
-            "Authorization": f"Bearer {token}",
-        },
     )
 
     assert response.status_code == 200
@@ -296,12 +272,7 @@ async def test_delete_portfolio_item() -> None:
     assert data["instrument_id"] == instrument_id
     assert data["message"] == "Portfolio item deleted"
 
-    portfolio_response = client.get(
-        "/api/v1/portfolio",
-        headers={
-            "Authorization": f"Bearer {token}",
-        },
-    )
+    portfolio_response = client.get("/api/v1/portfolio")
 
     assert portfolio_response.status_code == 200
     assert portfolio_response.json()["items"] == []
