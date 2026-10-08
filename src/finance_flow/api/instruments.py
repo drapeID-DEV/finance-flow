@@ -2,10 +2,12 @@ from datetime import date
 from decimal import Decimal
 from typing import Literal
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
+from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from finance_flow.dependencies import get_db_session
+from finance_flow.dependencies import get_current_admin, get_db_session
+from finance_flow.models.user import User
 from finance_flow.repositories.alert_repository import AlertRepository
 from finance_flow.repositories.instrument_repository import InstrumentRepository
 from finance_flow.repositories.rate_repository import RateRepository
@@ -24,6 +26,8 @@ rate_service = RateService(
     AlertService(AlertRepository()),
 )
 
+class UpdateInstrumentStatusRequest(BaseModel):
+    is_active: bool
 
 @router.get("")
 async def get_instruments(
@@ -44,6 +48,33 @@ async def get_instruments(
         }
         for instrument in instruments
     ]
+
+
+@router.patch("/{code}/status")
+async def update_instrument_status(
+    code: str,
+    request: UpdateInstrumentStatusRequest,
+    current_user: User = Depends(get_current_admin),
+    session: AsyncSession = Depends(get_db_session),
+) -> dict[str, object]:
+    try:
+        instrument = await service.set_active(
+            session,
+            code=code,
+            is_active=request.is_active,
+        )
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=404,
+            detail=str(exc),
+        ) from exc
+
+    await session.commit()
+
+    return {
+        "code": instrument.code,
+        "is_active": instrument.is_active,
+    }
 
 
 @router.get("/{code}/rates")

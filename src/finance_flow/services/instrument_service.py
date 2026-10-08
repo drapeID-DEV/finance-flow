@@ -38,3 +38,22 @@ class InstrumentService:
             return existing
 
         return await self.repository.add(session, instrument)
+
+    async def set_active(
+        self,
+        session: AsyncSession,
+        code: str,
+        is_active: bool,
+    ) -> Instrument:
+        instrument = await self.repository.get_by_code(
+            session,
+            code,
+        )
+
+        if instrument is None:
+            raise ValueError("Instrument not found")
+
+        instrument.is_active = is_active
+        await session.flush()
+
+        return instrument
