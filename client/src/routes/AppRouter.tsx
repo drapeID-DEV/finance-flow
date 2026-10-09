@@ -10,6 +10,10 @@ import {
 	useNavigate
 } from 'react-router-dom';
 import { MainLayout } from '../layouts/MainLayout';
+import { useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import type { RootState, AppDispatch } from '../store/store';
+import { sessionRestored } from '../store/authSlice';
 
 function DashboardPage() {
 	const { data: user, isLoading, isError } = useGetCurrentUserQuery();
@@ -44,6 +48,7 @@ function AnalyticsPage() {
 
 function LoginPage() {
 	const navigate = useNavigate();
+	const dispatch = useDispatch<AppDispatch>();
 	const [login, { isLoading }] = useLoginMutation();
 
 	const [email, setEmail] = useState('');
@@ -57,6 +62,7 @@ function LoginPage() {
 
 		try {
 			await login({ email, password }).unwrap();
+			dispatch(sessionRestored());
 			navigate('/');
 		} catch {
 			setError('Invalid email or password');
@@ -110,9 +116,27 @@ function RegisterPage() {
 	return <h1>Register</h1>;
 }
 
+function SessionHandler() {
+	const dispatch = useDispatch<AppDispatch>();
+	const navigate = useNavigate();
+	const sessionExpired = useSelector(
+		(state: RootState) => state.auth.sessionExpired
+	);
+
+	useEffect(() => {
+		if (sessionExpired) {
+			dispatch(sessionRestored());
+			navigate('/login', { replace: true });
+		}
+	}, [sessionExpired, dispatch, navigate]);
+
+	return null;
+}
+
 export function AppRouter() {
 	return (
 		<BrowserRouter>
+			<SessionHandler />
 			<Routes>
 				<Route element={<MainLayout />}>
 					<Route path="/" element={<DashboardPage />} />

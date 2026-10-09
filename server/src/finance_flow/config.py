@@ -9,6 +9,8 @@ class Settings(BaseSettings):
     database_url: str
     nbu_base_url: str = "https://bank.gov.ua/NBUStatService/v1"
     jwt_secret: str
+    access_token_expire_minutes: int = 15
+    refresh_token_expire_days: int = 7
 
     model_config = SettingsConfigDict(
         env_file=".env",

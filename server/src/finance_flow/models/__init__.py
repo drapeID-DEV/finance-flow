@@ -3,6 +3,7 @@ from finance_flow.models.instrument import Instrument
 from finance_flow.models.portfolio import Portfolio
 from finance_flow.models.portfolio_item import PortfolioItem
 from finance_flow.models.rate import Rate
+from finance_flow.models.refresh_token import RefreshToken
 from finance_flow.models.user import User
 
 __all__ = [
@@ -12,4 +13,5 @@ __all__ = [
     "Portfolio",
     "PortfolioItem",
     "Alert",
+    "RefreshToken",
 ]
