@@ -5,17 +5,17 @@ Revises: ca1213862d12
 Create Date: 2026-10-09 13:50:15.210861
 
 """
-from typing import Sequence, Union
+from collections.abc import Sequence
 
-from alembic import op
 import sqlalchemy as sa
 
+from alembic import op
 
 # revision identifiers, used by Alembic.
 revision: str = '684ae04784be'
-down_revision: Union[str, Sequence[str], None] = 'ca1213862d12'
-branch_labels: Union[str, Sequence[str], None] = None
-depends_on: Union[str, Sequence[str], None] = None
+down_revision: str | Sequence[str] | None = 'ca1213862d12'
+branch_labels: str | Sequence[str] | None = None
+depends_on: str | Sequence[str] | None = None
 
 
 def upgrade() -> None:
@@ -31,7 +31,12 @@ def upgrade() -> None:
     sa.PrimaryKeyConstraint('id'),
     sa.UniqueConstraint('token_hash')
     )
-    op.create_index(op.f('ix_refresh_tokens_user_id'), 'refresh_tokens', ['user_id'], unique=False)
+    op.create_index(
+        op.f("ix_refresh_tokens_user_id"),
+        "refresh_tokens",
+        ["user_id"],
+        unique=False,
+    )
     # ### end Alembic commands ###
 
 
