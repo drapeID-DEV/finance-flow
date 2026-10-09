@@ -1,11 +1,8 @@
-from fastapi.testclient import TestClient
-
-from finance_flow.main import app
-
-client = TestClient(app)
+import pytest
+from httpx import AsyncClient
 
 
-def test_application_starts() -> None:
-    response = client.get("/docs")
-
+@pytest.mark.asyncio
+async def test_application_starts(client: AsyncClient) -> None:
+    response = await client.get("/docs")
     assert response.status_code == 200
