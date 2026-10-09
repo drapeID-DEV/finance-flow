@@ -3,7 +3,8 @@ import {
 	Bell,
 	ChartNoAxesCombined,
 	Wallet,
-	LayoutDashboard
+	LayoutDashboard,
+	Coins
 } from 'lucide-react';
 
 export function MainLayout() {
@@ -15,6 +16,10 @@ export function MainLayout() {
 					<NavLink to="/">
 						<LayoutDashboard size={20} />
 						<span>Dashboard</span>
+					</NavLink>
+					<NavLink to="/instruments">
+						<Coins size={20} />
+						<span>Instruments</span>
 					</NavLink>
 					<NavLink to="/portfolio">
 						<Wallet size={20} />

@@ -16,6 +16,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import type { RootState, AppDispatch } from '../store/store';
 import { sessionRestored } from '../store/authSlice';
 import { ProtectedRoute } from './ProtectedRoute';
+import { InstrumentsPage } from '../pages/InstrumentsPage';
 
 function DashboardPage() {
 	const { data: user, isLoading, isError } = useGetCurrentUserQuery();
@@ -149,6 +150,10 @@ export function AppRouter() {
 						<Route path="/portfolio" element={<PortfolioPage />} />
 						<Route path="/alerts" element={<AlertsPage />} />
 						<Route path="/analytics" element={<AnalyticsPage />} />
+						<Route
+							path="/instruments"
+							element={<InstrumentsPage />}
+						/>
 					</Route>
 				</Route>
 				<Route path="/login" element={<LoginPage />} />
