@@ -7,6 +7,7 @@ import {
 	Navigate,
 	Route,
 	Routes,
+	useLocation,
 	useNavigate
 } from 'react-router-dom';
 import { MainLayout } from '../layouts/MainLayout';
@@ -14,6 +15,7 @@ import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import type { RootState, AppDispatch } from '../store/store';
 import { sessionRestored } from '../store/authSlice';
+import { ProtectedRoute } from './ProtectedRoute';
 
 function DashboardPage() {
 	const { data: user, isLoading, isError } = useGetCurrentUserQuery();
@@ -49,6 +51,9 @@ function AnalyticsPage() {
 function LoginPage() {
 	const navigate = useNavigate();
 	const dispatch = useDispatch<AppDispatch>();
+	const location = useLocation();
+
+	const from = location.state?.from?.pathname || '/';
 	const [login, { isLoading }] = useLoginMutation();
 
 	const [email, setEmail] = useState('');
@@ -63,7 +68,7 @@ function LoginPage() {
 		try {
 			await login({ email, password }).unwrap();
 			dispatch(sessionRestored());
-			navigate('/');
+			navigate(from, { replace: true });
 		} catch {
 			setError('Invalid email or password');
 		}
@@ -138,11 +143,13 @@ export function AppRouter() {
 		<BrowserRouter>
 			<SessionHandler />
 			<Routes>
-				<Route element={<MainLayout />}>
-					<Route path="/" element={<DashboardPage />} />
-					<Route path="/portfolio" element={<PortfolioPage />} />
-					<Route path="/alerts" element={<AlertsPage />} />
-					<Route path="/analytics" element={<AnalyticsPage />} />
+				<Route element={<ProtectedRoute />}>
+					<Route element={<MainLayout />}>
+						<Route path="/" element={<DashboardPage />} />
+						<Route path="/portfolio" element={<PortfolioPage />} />
+						<Route path="/alerts" element={<AlertsPage />} />
+						<Route path="/analytics" element={<AnalyticsPage />} />
+					</Route>
 				</Route>
 				<Route path="/login" element={<LoginPage />} />
 				<Route path="/register" element={<RegisterPage />} />

@@ -5,7 +5,10 @@ import {
 	type FetchArgs,
 	type FetchBaseQueryError
 } from '@reduxjs/toolkit/query/react';
+import { Mutex } from 'async-mutex';
 import { sessionExpired } from '../store/authSlice';
+
+const mutex = new Mutex();
 
 const rawBaseQuery = fetchBaseQuery({
 	baseUrl: 'http://localhost:8000/api/v1',
@@ -17,22 +20,40 @@ const baseQueryWithReauth: BaseQueryFn<
 	unknown,
 	FetchBaseQueryError
 > = async (args, api, extraOptions) => {
+	await mutex.waitForUnlock();
+
 	let result = await rawBaseQuery(args, api, extraOptions);
 
 	if (result.error?.status === 401) {
-		const refreshResult = await rawBaseQuery(
-			{
-				url: '/auth/refresh',
-				method: 'POST'
-			},
-			api,
-			extraOptions
-		);
+		if (!mutex.isLocked()) {
+			const release = await mutex.acquire();
 
-		if (refreshResult.data) {
-			result = await rawBaseQuery(args, api, extraOptions);
+			try {
+				const refreshResult = await rawBaseQuery(
+					{
+						url: '/auth/refresh',
+						method: 'POST'
+					},
+					api,
+					extraOptions
+				);
+
+				if (refreshResult.data) {
+					result = await rawBaseQuery(args, api, extraOptions);
+				} else {
+					api.dispatch(sessionExpired());
+				}
+			} finally {
+				release();
+			}
 		} else {
-			api.dispatch(sessionExpired());
+			await mutex.waitForUnlock();
+
+			result = await rawBaseQuery(args, api, extraOptions);
+
+			if (result.error?.status === 401) {
+				api.dispatch(sessionExpired());
+			}
 		}
 	}
 
