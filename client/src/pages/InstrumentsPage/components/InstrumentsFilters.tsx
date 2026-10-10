@@ -1,3 +1,5 @@
+import { Button } from '../../../shared/ui/Button/Button';
+
 interface InstrumentsFiltersProps {
 	search: string;
 	type: '' | 'currency' | 'metal';
@@ -35,9 +37,13 @@ export function InstrumentsFilters({
 				<option value="currency">Currencies</option>
 				<option value="metal">Metals</option>
 			</select>
-			<button type="button" onClick={onReset} disabled={!search && !type}>
+			<Button
+				variant="secondary"
+				onClick={onReset}
+				disabled={!search && !type}
+			>
 				Reset
-			</button>
+			</Button>
 		</div>
 	);
 }

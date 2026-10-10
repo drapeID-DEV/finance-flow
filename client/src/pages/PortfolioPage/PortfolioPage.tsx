@@ -7,6 +7,7 @@ import {
 	useDeletePortfolioItemMutation
 } from '../../api/portfolioApi';
 import './PortfolioPage.css';
+import { Button } from '../../shared/ui/Button/Button';
 
 const INSTRUMENTS_PAGE_SIZE = 100;
 
@@ -211,7 +212,7 @@ export default function PortfolioPage() {
 						aria-label="Initial quantity"
 						required
 					/>
-					<button
+					<Button
 						type="submit"
 						disabled={
 							isAdding ||
@@ -221,7 +222,7 @@ export default function PortfolioPage() {
 						}
 					>
 						{isAdding ? 'Adding...' : 'Add to portfolio'}
-					</button>
+					</Button>
 				</div>
 				{availableInstruments.length === 0 && (
 					<p className="portfolio-message">
@@ -333,7 +334,7 @@ export default function PortfolioPage() {
 												: '—'}
 										</td>
 										<td className="portfolio-actions">
-											<button
+											<Button
 												type="button"
 												onClick={() =>
 													void handleUpdate(
@@ -347,10 +348,9 @@ export default function PortfolioPage() {
 												}
 											>
 												Save
-											</button>
-											<button
-												type="button"
-												className="portfolio-delete"
+											</Button>
+											<Button
+												variant="danger"
 												onClick={() =>
 													void handleDelete(
 														item.instrument_id
@@ -363,7 +363,7 @@ export default function PortfolioPage() {
 												}
 											>
 												Remove
-											</button>
+											</Button>
 										</td>
 									</tr>
 								);

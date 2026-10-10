@@ -16,3 +16,9 @@
 .header-actions a {
     color: #9299a5;
 }
+
+.logged-actions {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
