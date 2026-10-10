@@ -1,6 +1,7 @@
 import { type ReactNode } from 'react';
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import { useGetCurrentUserQuery } from '../api/authApi';
+import { Loader } from '../shared/ui/Loader/Loader';
 
 interface ProtectedRouteProps {
 	children?: ReactNode;
@@ -12,7 +13,7 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
 	const { data: user, isLoading, isError } = useGetCurrentUserQuery();
 
 	if (isLoading) {
-		return <h1>Loading...</h1>;
+		return <Loader />;
 	}
 
 	if (isError || !user) {

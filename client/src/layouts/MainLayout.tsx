@@ -6,12 +6,15 @@ import {
 	LayoutDashboard,
 	Coins
 } from 'lucide-react';
+import './MainLayout.css';
 
 export function MainLayout() {
 	return (
 		<div className="app">
 			<aside className="sidebar">
-				<div className="logo">FinanceFlow</div>
+				<a className="logo" href="/">
+					FinanceFlow
+				</a>
 				<nav className="navigation">
 					<NavLink to="/">
 						<LayoutDashboard size={20} />

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useGetInstrumentsQuery } from '../api/instrumentsApi';
+import { useGetInstrumentsQuery } from '../../api/instrumentsApi';
 import './InstrumentsPage.css';
 
 const PAGE_SIZE = 20;
@@ -54,7 +54,6 @@ export function InstrumentsPage() {
 					{data.total} instruments
 				</span>
 			</div>
-
 			<div className="instruments-filters">
 				<input
 					type="search"
@@ -63,7 +62,6 @@ export function InstrumentsPage() {
 					onChange={(event) => handleSearchChange(event.target.value)}
 					aria-label="Search instruments"
 				/>
-
 				<select
 					value={type}
 					onChange={(event) =>
@@ -77,7 +75,6 @@ export function InstrumentsPage() {
 					<option value="currency">Currencies</option>
 					<option value="metal">Metals</option>
 				</select>
-
 				<button
 					type="button"
 					onClick={() => {
@@ -90,7 +87,6 @@ export function InstrumentsPage() {
 					Reset
 				</button>
 			</div>
-
 			{instruments.length === 0 ? (
 				<p className="instruments-message">
 					No instruments match your filters.
@@ -125,7 +121,6 @@ export function InstrumentsPage() {
 					</table>
 				</div>
 			)}
-
 			<div className="instruments-pagination">
 				<button
 					type="button"
@@ -147,7 +142,6 @@ export function InstrumentsPage() {
 					Next
 				</button>
 			</div>
-
 			{isFetching && !isLoading && (
 				<p className="instruments-message">Updating instruments...</p>
 			)}
