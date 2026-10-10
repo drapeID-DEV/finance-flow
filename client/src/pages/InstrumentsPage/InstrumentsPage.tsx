@@ -1,5 +1,8 @@
 import { useState } from 'react';
 import { useGetInstrumentsQuery } from '../../api/instrumentsApi';
+import { InstrumentsFilters } from './components/InstrumentsFilters';
+import { InstrumentsTable } from './components/InstrumentsTable';
+import { InstrumentsPagination } from './components/InstrumentsPagination';
 import './InstrumentsPage.css';
 
 const PAGE_SIZE = 20;
@@ -27,6 +30,12 @@ export function InstrumentsPage() {
 		setPage(1);
 	};
 
+	const handleReset = () => {
+		setSearch('');
+		setType('');
+		setPage(1);
+	};
+
 	if (isLoading) {
 		return <p className="instruments-message">Loading instruments...</p>;
 	}
@@ -35,114 +44,41 @@ export function InstrumentsPage() {
 		return (
 			<div className="instruments-message">
 				<p>Failed to load instruments.</p>
-				<button onClick={() => refetch()}>Try again</button>
+				<button type="button" onClick={() => refetch()}>
+					Try again
+				</button>
 			</div>
 		);
 	}
 
-	const instruments = data.items;
 	const totalPages = Math.ceil(data.total / data.page_size);
 
 	return (
 		<div className="instruments-page">
 			<div className="instruments-heading">
 				<div>
-					<h1>Currencies & Metals</h1>
+					<h1>Currencies &amp; Metals</h1>
 					<p>Browse available financial instruments.</p>
 				</div>
 				<span className="instruments-count">
 					{data.total} instruments
 				</span>
 			</div>
-			<div className="instruments-filters">
-				<input
-					type="search"
-					placeholder="Search by code or name..."
-					value={search}
-					onChange={(event) => handleSearchChange(event.target.value)}
-					aria-label="Search instruments"
-				/>
-				<select
-					value={type}
-					onChange={(event) =>
-						handleTypeChange(
-							event.target.value as '' | 'currency' | 'metal'
-						)
-					}
-					aria-label="Filter by instrument type"
-				>
-					<option value="">All types</option>
-					<option value="currency">Currencies</option>
-					<option value="metal">Metals</option>
-				</select>
-				<button
-					type="button"
-					onClick={() => {
-						setSearch('');
-						setType('');
-						setPage(1);
-					}}
-					disabled={!search && !type}
-				>
-					Reset
-				</button>
-			</div>
-			{instruments.length === 0 ? (
-				<p className="instruments-message">
-					No instruments match your filters.
-				</p>
-			) : (
-				<div className="instruments-table-wrapper">
-					<table className="instruments-table">
-						<thead>
-							<tr>
-								<th>Code</th>
-								<th>Name</th>
-								<th>Type</th>
-								<th>Status</th>
-							</tr>
-						</thead>
-						<tbody>
-							{instruments.map((instrument) => (
-								<tr key={instrument.code}>
-									<td className="instrument-code">
-										{instrument.code}
-									</td>
-									<td>{instrument.name}</td>
-									<td>{instrument.type}</td>
-									<td>
-										<span className="instrument-status">
-											Active
-										</span>
-									</td>
-								</tr>
-							))}
-						</tbody>
-					</table>
-				</div>
-			)}
-			<div className="instruments-pagination">
-				<button
-					type="button"
-					onClick={() => setPage((current) => current - 1)}
-					disabled={page === 1 || isFetching}
-				>
-					Previous
-				</button>
-				<span>
-					Page {page} of {Math.max(totalPages, 1)}
-				</span>
-				<button
-					type="button"
-					onClick={() => setPage((current) => current + 1)}
-					disabled={
-						page >= totalPages || isFetching || totalPages === 0
-					}
-				>
-					Next
-				</button>
-			</div>
-			{isFetching && !isLoading && (
+			<InstrumentsFilters
+				search={search}
+				type={type}
+				onSearchChange={handleSearchChange}
+				onTypeChange={handleTypeChange}
+				onReset={handleReset}
+			/>
+			<InstrumentsTable instruments={data.items} />
+			<InstrumentsPagination
+				page={page}
+				totalPages={totalPages}
+				isFetching={isFetching}
+				onPageChange={setPage}
+			/>
+			{isFetching && (
 				<p className="instruments-message">Updating instruments...</p>
 			)}
 		</div>

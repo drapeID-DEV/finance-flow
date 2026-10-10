@@ -1,5 +1,8 @@
 import { useGetCurrentUserQuery } from '../../api/authApi';
 import { Loader } from '../../shared/ui/Loader/Loader';
+import { DashboardError } from './components/DashboardError';
+import { WelcomeSection } from './components/WelcomeSection/WelcomeSection';
+import './DashboardPage.css';
 
 export default function DashboardPage() {
 	const { data: user, isLoading, isError } = useGetCurrentUserQuery();
@@ -9,13 +12,12 @@ export default function DashboardPage() {
 	}
 
 	if (isError || !user) {
-		return <h1>Not authenticated</h1>;
+		return <DashboardError />;
 	}
 
 	return (
-		<div>
-			<h1>Dashboard</h1>
-			<p>Welcome, {user.email}</p>
+		<div className="dashboard-page">
+			<WelcomeSection email={user.email} />
 		</div>
 	);
 }

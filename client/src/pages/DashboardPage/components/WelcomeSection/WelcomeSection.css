@@ -1,0 +1,20 @@
+.welcome-section {
+    margin-bottom: 32px;
+}
+
+.welcome-section h1 {
+    margin: 0 0 8px;
+    font-size: 28px;
+    font-weight: 700;
+}
+
+.welcome-section p {
+    margin: 0;
+    color: #9299a5;
+    font-size: 15px;
+}
+
+.welcome-section p span {
+    color: #f5f5f5;
+    font-weight: 500;
+}
