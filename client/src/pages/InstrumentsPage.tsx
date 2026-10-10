@@ -1,19 +1,23 @@
+import { useState } from 'react';
 import { useGetInstrumentsQuery } from '../api/instrumentsApi';
 import './InstrumentsPage.css';
 
+const PAGE_SIZE = 20;
+
 export function InstrumentsPage() {
-	const {
-		data: instruments,
-		isLoading,
-		isError,
-		refetch
-	} = useGetInstrumentsQuery();
+	const [page, setPage] = useState(1);
+
+	const { data, isLoading, isFetching, isError, refetch } =
+		useGetInstrumentsQuery({
+			page,
+			page_size: PAGE_SIZE
+		});
 
 	if (isLoading) {
 		return <p className="instruments-message">Loading instruments...</p>;
 	}
 
-	if (isError) {
+	if (isError || !data) {
 		return (
 			<div className="instruments-message">
 				<p>Failed to load instruments.</p>
@@ -22,16 +26,8 @@ export function InstrumentsPage() {
 		);
 	}
 
-	if (!instruments?.length) {
-		return (
-			<div className="instruments-page">
-				<h1>Currencies & Metals</h1>
-				<p className="instruments-message">
-					No active instruments found.
-				</p>
-			</div>
-		);
-	}
+	const instruments = data.items;
+	const totalPages = Math.ceil(data.total / data.page_size);
 
 	return (
 		<div className="instruments-page">
@@ -41,37 +37,67 @@ export function InstrumentsPage() {
 					<p>Browse available financial instruments.</p>
 				</div>
 				<span className="instruments-count">
-					{instruments.length} instruments
+					{data.total} instruments
 				</span>
 			</div>
-			<div className="instruments-table-wrapper">
-				<table className="instruments-table">
-					<thead>
-						<tr>
-							<th>Code</th>
-							<th>Name</th>
-							<th>Type</th>
-							<th>Status</th>
-						</tr>
-					</thead>
-					<tbody>
-						{instruments.map((instrument) => (
-							<tr key={instrument.code}>
-								<td className="instrument-code">
-									{instrument.code}
-								</td>
-								<td>{instrument.name}</td>
-								<td>{instrument.type}</td>
-								<td>
-									<span className="instrument-status">
-										Active
-									</span>
-								</td>
+			{instruments.length === 0 ? (
+				<p className="instruments-message">
+					No active instruments found.
+				</p>
+			) : (
+				<div className="instruments-table-wrapper">
+					<table className="instruments-table">
+						<thead>
+							<tr>
+								<th>Code</th>
+								<th>Name</th>
+								<th>Type</th>
+								<th>Status</th>
 							</tr>
-						))}
-					</tbody>
-				</table>
+						</thead>
+						<tbody>
+							{instruments.map((instrument) => (
+								<tr key={instrument.code}>
+									<td className="instrument-code">
+										{instrument.code}
+									</td>
+									<td>{instrument.name}</td>
+									<td>{instrument.type}</td>
+									<td>
+										<span className="instrument-status">
+											Active
+										</span>
+									</td>
+								</tr>
+							))}
+						</tbody>
+					</table>
+				</div>
+			)}
+			<div className="instruments-pagination">
+				<button
+					type="button"
+					onClick={() => setPage((current) => current - 1)}
+					disabled={page === 1 || isFetching}
+				>
+					Previous
+				</button>
+				<span>
+					Page {page} of {Math.max(totalPages, 1)}
+				</span>
+				<button
+					type="button"
+					onClick={() => setPage((current) => current + 1)}
+					disabled={
+						page >= totalPages || isFetching || totalPages === 0
+					}
+				>
+					Next
+				</button>
 			</div>
+			{isFetching && !isLoading && (
+				<p className="instruments-message">Updating instruments...</p>
+			)}
 		</div>
 	);
 }

@@ -32,22 +32,31 @@ class UpdateInstrumentStatusRequest(BaseModel):
 @router.get("")
 async def get_instruments(
     page: int = Query(default=1, ge=1),
+    page_size: int = Query(default=20, ge=1, le=100),
     session: AsyncSession = Depends(get_db_session),
-) -> list[dict[str, object]]:
+) -> dict[str, object]:
     instruments = await service.get_active(
         session,
         page=page,
+        page_size=page_size,
     )
+    total = await repository.count_active(session)
 
-    return [
-        {
-            "code": instrument.code,
-            "name": instrument.name,
-            "type": instrument.type,
-            "is_active": instrument.is_active,
-        }
-        for instrument in instruments
-    ]
+    return {
+        "items": [
+            {
+                "id": instrument.id,
+                "code": instrument.code,
+                "name": instrument.name,
+                "type": instrument.type,
+                "is_active": instrument.is_active,
+            }
+            for instrument in instruments
+        ],
+        "page": page,
+        "page_size": page_size,
+        "total": total,
+    }
 
 
 @router.patch("/{code}/status")

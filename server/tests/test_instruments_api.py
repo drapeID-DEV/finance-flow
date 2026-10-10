@@ -64,15 +64,45 @@ async def add_instrument_with_rates(
 @pytest.mark.asyncio
 async def test_get_instruments(client: AsyncClient) -> None:
     response = await client.get("/api/v1/instruments")
+
     assert response.status_code == 200
-    assert isinstance(response.json(), list)
+    data = response.json()
+
+    assert isinstance(data, dict)
+    assert {"items", "page", "page_size", "total"} <= data.keys()
+    assert isinstance(data["items"], list)
+    assert data["page"] == 1
+    assert data["page_size"] == 20
+    assert isinstance(data["total"], int)
+    assert data["total"] >= len(data["items"])
 
 
 @pytest.mark.asyncio
 async def test_get_instruments_with_page(client: AsyncClient) -> None:
-    response = await client.get("/api/v1/instruments?page=1")
+    response = await client.get(
+        "/api/v1/instruments?page=1&page_size=5"
+    )
+
     assert response.status_code == 200
-    assert isinstance(response.json(), list)
+    data = response.json()
+
+    assert data["page"] == 1
+    assert data["page_size"] == 5
+    assert len(data["items"]) <= 5
+    assert data["total"] >= len(data["items"])
+
+
+@pytest.mark.asyncio
+async def test_get_instruments_rejects_invalid_pagination(
+    client: AsyncClient,
+) -> None:
+    for params in (
+        "?page=0",
+        "?page_size=0",
+        "?page_size=101",
+    ):
+        response = await client.get(f"/api/v1/instruments{params}")
+        assert response.status_code == 422
 
 
 @pytest.mark.asyncio

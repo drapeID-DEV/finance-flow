@@ -1,4 +1,4 @@
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from finance_flow.models.instrument import Instrument
@@ -13,14 +13,13 @@ class InstrumentRepository:
         result = await session.execute(
             select(Instrument).where(Instrument.code == code)
         )
-
         return result.scalar_one_or_none()
 
     async def get_active(
-    self,
-    session: AsyncSession,
-    page: int = 1,
-    page_size: int = 20,
+        self,
+        session: AsyncSession,
+        page: int = 1,
+        page_size: int = 20,
     ) -> list[Instrument]:
         offset = (page - 1) * page_size
 
@@ -31,8 +30,15 @@ class InstrumentRepository:
             .offset(offset)
             .limit(page_size)
         )
-
         return list(result.scalars().all())
+
+    async def count_active(self, session: AsyncSession) -> int:
+        result = await session.execute(
+            select(func.count())
+            .select_from(Instrument)
+            .where(Instrument.is_active.is_(True))
+        )
+        return result.scalar_one()
 
     async def add(
         self,
@@ -41,5 +47,4 @@ class InstrumentRepository:
     ) -> Instrument:
         session.add(instrument)
         await session.flush()
-
         return instrument

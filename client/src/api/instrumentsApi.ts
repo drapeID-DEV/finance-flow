@@ -8,10 +8,25 @@ export interface Instrument {
 	is_active: boolean;
 }
 
+export interface InstrumentsResponse {
+	items: Instrument[];
+	page: number;
+	page_size: number;
+	total: number;
+}
+
+export interface InstrumentsQuery {
+	page: number;
+	page_size: number;
+}
+
 export const instrumentsApi = baseApi.injectEndpoints({
 	endpoints: (builder) => ({
-		getInstruments: builder.query<Instrument[], void>({
-			query: () => '/instruments',
+		getInstruments: builder.query<InstrumentsResponse, InstrumentsQuery>({
+			query: ({ page, page_size }) => ({
+				url: '/instruments',
+				params: { page, page_size }
+			}),
 			providesTags: ['Instrument']
 		})
 	})
