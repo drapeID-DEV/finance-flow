@@ -1,4 +1,5 @@
 import { useState } from 'react';
+
 import { useGetInstrumentsQuery } from '../../api/instrumentsApi';
 import {
 	useGetPortfolioQuery,
@@ -6,8 +7,17 @@ import {
 	useUpdatePortfolioItemMutation,
 	useDeletePortfolioItemMutation
 } from '../../api/portfolioApi';
+
+import { PortfolioSummary } from './components/PortfolioSummary';
+import { AddInstrumentForm } from './components/AddInstrumentForm';
+import { PortfolioTable } from './components/PortfolioTable';
+import {
+	PortfolioMessages,
+	PortfolioLoadError,
+	PortfolioEmpty
+} from './components/PortfolioMessages';
+
 import './PortfolioPage.css';
-import { Button } from '../../shared/ui/Button/Button';
 
 const INSTRUMENTS_PAGE_SIZE = 100;
 
@@ -35,17 +45,16 @@ export default function PortfolioPage() {
 	});
 
 	const [addItem, { isLoading: isAdding }] = useAddPortfolioItemMutation();
+
 	const [updateItem, { isLoading: isUpdating }] =
 		useUpdatePortfolioItemMutation();
+
 	const [deleteItem, { isLoading: isDeleting }] =
 		useDeletePortfolioItemMutation();
 
 	const instruments = (instrumentsData?.items ?? []).filter(
 		(instrument) => instrument.is_active
 	);
-
-	const getInstrument = (instrumentId: number) =>
-		instruments.find((instrument) => instrument.id === instrumentId);
 
 	const handleAdd = async () => {
 		const instrumentId = Number(selectedInstrumentId);
@@ -143,14 +152,7 @@ export default function PortfolioPage() {
 		!portfolio ||
 		!instrumentsData
 	) {
-		return (
-			<div className="portfolio-message">
-				<p>Failed to load portfolio.</p>
-				<button type="button" onClick={() => refetch()}>
-					Try again
-				</button>
-			</div>
-		);
+		return <PortfolioLoadError onRetry={() => void refetch()} />;
 	}
 
 	const portfolioInstrumentIds = new Set(
@@ -161,6 +163,8 @@ export default function PortfolioPage() {
 		(instrument) => !portfolioInstrumentIds.has(instrument.id)
 	);
 
+	const isBusy = isAdding || isUpdating || isDeleting;
+
 	return (
 		<section className="portfolio-page">
 			<header className="portfolio-heading">
@@ -169,208 +173,43 @@ export default function PortfolioPage() {
 					<p>Manage your currencies and precious metals.</p>
 				</div>
 			</header>
-			<div className="portfolio-summary">
-				<span>Total portfolio value</span>
-				<strong>
-					{Number(portfolio.total_value).toLocaleString(undefined, {
-						minimumFractionDigits: 2,
-						maximumFractionDigits: 2
-					})}{' '}
-					{portfolio.base_currency}
-				</strong>
-			</div>
-			<form
-				className="portfolio-add-form"
-				onSubmit={(event) => {
-					event.preventDefault();
-					void handleAdd();
-				}}
-			>
-				<h2>Add instrument</h2>
-				<div className="portfolio-add-fields">
-					<select
-						value={selectedInstrumentId}
-						onChange={(event) =>
-							setSelectedInstrumentId(event.target.value)
-						}
-						aria-label="Select instrument"
-						required
-					>
-						<option value="">Select an instrument</option>
-						{availableInstruments.map((instrument) => (
-							<option key={instrument.id} value={instrument.id}>
-								{instrument.code} — {instrument.name}
-							</option>
-						))}
-					</select>
-					<input
-						type="number"
-						min="0.000001"
-						step="any"
-						value={newQuantity}
-						onChange={(event) => setNewQuantity(event.target.value)}
-						aria-label="Initial quantity"
-						required
-					/>
-					<Button
-						type="submit"
-						disabled={
-							isAdding ||
-							isUpdating ||
-							isDeleting ||
-							availableInstruments.length === 0
-						}
-					>
-						{isAdding ? 'Adding...' : 'Add to portfolio'}
-					</Button>
-				</div>
-				{availableInstruments.length === 0 && (
-					<p className="portfolio-message">
-						All loaded active instruments are already in your
-						portfolio.
-					</p>
-				)}
-			</form>
-			{errorMessage && (
-				<p className="portfolio-error" role="alert">
-					{errorMessage}
-				</p>
-			)}
-			{successMessage && (
-				<p className="portfolio-success" role="status">
-					{successMessage}
-				</p>
-			)}
+			<PortfolioSummary
+				totalValue={portfolio.total_value}
+				baseCurrency={portfolio.base_currency}
+			/>
+			<AddInstrumentForm
+				instruments={availableInstruments}
+				selectedInstrumentId={selectedInstrumentId}
+				quantity={newQuantity}
+				isBusy={isBusy}
+				isAdding={isAdding}
+				onInstrumentChange={setSelectedInstrumentId}
+				onQuantityChange={setNewQuantity}
+				onSubmit={() => void handleAdd()}
+			/>
+			<PortfolioMessages
+				errorMessage={errorMessage}
+				successMessage={successMessage}
+			/>
 			{portfolio.items.length === 0 ? (
-				<div className="portfolio-empty">
-					<h2>Your portfolio is empty</h2>
-					<p>Add a currency or metal using the form above.</p>
-				</div>
+				<PortfolioEmpty />
 			) : (
-				<div className="portfolio-table-wrapper">
-					<table className="portfolio-table">
-						<thead>
-							<tr>
-								<th>Code</th>
-								<th>Name</th>
-								<th>Type</th>
-								<th>Quantity</th>
-								<th>Current rate</th>
-								<th>Value (UAH)</th>
-								<th>Portfolio share</th>
-								<th>Actions</th>
-							</tr>
-						</thead>
-						<tbody>
-							{portfolio.items.map((item) => {
-								const instrument = getInstrument(
-									item.instrument_id
-								);
-
-								return (
-									<tr key={item.instrument_id}>
-										<td>
-											{instrument?.code ??
-												`#${item.instrument_id}`}
-										</td>
-										<td>
-											{instrument?.name ??
-												'Unknown instrument'}
-										</td>
-										<td>{instrument?.type ?? '—'}</td>
-										<td>
-											<input
-												className="portfolio-quantity"
-												type="number"
-												min="0.000001"
-												step="any"
-												aria-label={`Quantity for ${instrument?.code ?? item.instrument_id}`}
-												value={
-													quantities[
-														item.instrument_id
-													] ?? String(item.quantity)
-												}
-												onChange={(event) =>
-													setQuantities(
-														(current) => ({
-															...current,
-															[item.instrument_id]:
-																event.target
-																	.value
-														})
-													)
-												}
-											/>
-										</td>
-										<td>
-											{item.current_rate != null &&
-											item.rate_unit != null
-												? `${Number(item.current_rate).toLocaleString()} / ${item.rate_unit}`
-												: '—'}
-										</td>
-										<td>
-											{item.value != null
-												? `${Number(
-														item.value
-													).toLocaleString(
-														undefined,
-														{
-															minimumFractionDigits: 2,
-															maximumFractionDigits: 2
-														}
-													)} ${portfolio.base_currency}`
-												: '—'}
-										</td>
-										<td>
-											{item.value != null &&
-											Number(portfolio.total_value) > 0
-												? `${(
-														(Number(item.value) /
-															Number(
-																portfolio.total_value
-															)) *
-														100
-													).toFixed(2)}%`
-												: '—'}
-										</td>
-										<td className="portfolio-actions">
-											<Button
-												type="button"
-												onClick={() =>
-													void handleUpdate(
-														item.instrument_id
-													)
-												}
-												disabled={
-													isAdding ||
-													isUpdating ||
-													isDeleting
-												}
-											>
-												Save
-											</Button>
-											<Button
-												variant="danger"
-												onClick={() =>
-													void handleDelete(
-														item.instrument_id
-													)
-												}
-												disabled={
-													isAdding ||
-													isUpdating ||
-													isDeleting
-												}
-											>
-												Remove
-											</Button>
-										</td>
-									</tr>
-								);
-							})}
-						</tbody>
-					</table>
-				</div>
+				<PortfolioTable
+					items={portfolio.items}
+					instruments={instruments}
+					quantities={quantities}
+					totalValue={portfolio.total_value}
+					baseCurrency={portfolio.base_currency}
+					isBusy={isBusy}
+					onQuantityChange={(instrumentId, value) =>
+						setQuantities((current) => ({
+							...current,
+							[instrumentId]: value
+						}))
+					}
+					onUpdate={(instrumentId) => void handleUpdate(instrumentId)}
+					onDelete={(instrumentId) => void handleDelete(instrumentId)}
+				/>
 			)}
 		</section>
 	);
