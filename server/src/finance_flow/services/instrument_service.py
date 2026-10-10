@@ -20,11 +20,15 @@ class InstrumentService:
         session: AsyncSession,
         page: int = 1,
         page_size: int = 20,
+        search: str | None = None,
+        instrument_type: str | None = None,
     ) -> list[Instrument]:
         return await self.repository.get_active(
             session,
             page=page,
             page_size=page_size,
+            search=search,
+            instrument_type=instrument_type,
         )
 
     async def create(
@@ -32,9 +36,15 @@ class InstrumentService:
         session: AsyncSession,
         instrument: Instrument,
     ) -> Instrument:
-        existing = await self.repository.get_by_code(session, instrument.code)
+        existing = await self.repository.get_by_code(
+            session,
+            instrument.code,
+        )
 
         if existing is not None:
+            existing.name = instrument.name
+            existing.type = instrument.type
+            await session.flush()
             return existing
 
         return await self.repository.add(session, instrument)

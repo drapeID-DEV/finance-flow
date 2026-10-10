@@ -33,14 +33,25 @@ class UpdateInstrumentStatusRequest(BaseModel):
 async def get_instruments(
     page: int = Query(default=1, ge=1),
     page_size: int = Query(default=20, ge=1, le=100),
+    search: str | None = Query(default=None, max_length=100),
+    instrument_type: Literal["currency", "metal"] | None = Query(
+        default=None,
+        alias="type",
+    ),
     session: AsyncSession = Depends(get_db_session),
 ) -> dict[str, object]:
     instruments = await service.get_active(
         session,
         page=page,
         page_size=page_size,
+        search=search,
+        instrument_type=instrument_type,
     )
-    total = await repository.count_active(session)
+    total = await repository.count_active(
+        session,
+        search=search,
+        instrument_type=instrument_type,
+    )
 
     return {
         "items": [

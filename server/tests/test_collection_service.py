@@ -12,7 +12,10 @@ from finance_flow.repositories.alert_repository import AlertRepository
 from finance_flow.repositories.instrument_repository import InstrumentRepository
 from finance_flow.repositories.rate_repository import RateRepository
 from finance_flow.services.alert_service import AlertService
-from finance_flow.services.collection_service import CollectionService
+from finance_flow.services.collection_service import (
+    CollectionService,
+    get_instrument_type,
+)
 from finance_flow.services.instrument_service import InstrumentService
 from finance_flow.services.rate_service import RateService
 from finance_flow.sources.nbu import NbuSource
@@ -131,3 +134,23 @@ async def test_collect_without_rates(db_session: AsyncSession) -> None:
         )
 
         assert saved_count == 0
+
+
+@pytest.mark.parametrize(
+    ("code", "expected_type"),
+    [
+        ("XAU", "metal"),
+        ("XAG", "metal"),
+        ("XPT", "metal"),
+        ("XPD", "metal"),
+        ("USD", "currency"),
+        ("EUR", "currency"),
+        ("UAH", "currency"),
+        ("xau", "metal"),
+    ],
+)
+def test_get_instrument_type(
+    code: str,
+    expected_type: str,
+) -> None:
+    assert get_instrument_type(code) == expected_type

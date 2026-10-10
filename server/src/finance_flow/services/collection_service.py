@@ -7,6 +7,12 @@ from finance_flow.services.instrument_service import InstrumentService
 from finance_flow.services.rate_service import RateService
 from finance_flow.sources.nbu import NbuSource
 
+METAL_CODES = {"XAU", "XAG", "XPT", "XPD"}
+
+
+def get_instrument_type(code: str) -> str:
+    return "metal" if code.upper() in METAL_CODES else "currency"
+
 
 class CollectionService:
     def __init__(
@@ -34,7 +40,7 @@ class CollectionService:
             instrument = Instrument(
                 code=nbu_rate.code,
                 name=nbu_rate.name,
-                type="currency",
+                type=get_instrument_type(nbu_rate.code),
                 is_active=True,
             )
 

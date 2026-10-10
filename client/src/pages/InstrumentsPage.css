@@ -141,3 +141,117 @@
 .instruments-pagination span {
     font-size: 14px;
 }
+
+/* Search and filters */
+.instruments-filters {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin: 24px 0;
+}
+
+.instruments-filters input[type='search'],
+.instruments-filters select {
+    height: 42px;
+    padding: 0 14px;
+    border: 1px solid #2a303b;
+    border-radius: 9px;
+    background-color: #11151c;
+    color: #e5e7eb;
+    font: inherit;
+    font-size: 14px;
+    outline: none;
+    transition:
+        border-color 0.2s ease,
+        box-shadow 0.2s ease,
+        background-color 0.2s ease;
+}
+
+.instruments-filters input[type='search'] {
+    flex: 1;
+    min-width: 220px;
+    max-width: 380px;
+}
+
+.instruments-filters input[type='search']::placeholder {
+    color: #7c8494;
+}
+
+.instruments-filters input[type='search']::-webkit-search-cancel-button {
+    cursor: pointer;
+}
+
+.instruments-filters select {
+    min-width: 150px;
+    cursor: pointer;
+}
+
+.instruments-filters input[type='search']:hover,
+.instruments-filters select:hover {
+    border-color: #414958;
+}
+
+.instruments-filters input[type='search']:focus,
+.instruments-filters select:focus {
+    border-color: #647cf4;
+    background-color: #151a24;
+    box-shadow: 0 0 0 3px rgb(100 124 244 / 15%);
+}
+
+.instruments-filters button {
+    height: 42px;
+    padding: 0 16px;
+    border: 1px solid #303746;
+    border-radius: 9px;
+    background-color: #191e28;
+    color: #d5d9e2;
+    font: inherit;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition:
+        background-color 0.2s ease,
+        border-color 0.2s ease,
+        color 0.2s ease;
+}
+
+.instruments-filters button:hover:not(:disabled) {
+    border-color: #647cf4;
+    background-color: #242c3c;
+    color: #fff;
+}
+
+.instruments-filters button:focus-visible {
+    outline: 2px solid #647cf4;
+    outline-offset: 2px;
+}
+
+.instruments-filters button:disabled {
+    cursor: not-allowed;
+    opacity: 0.45;
+}
+
+/* Responsive layout */
+@media (max-width: 600px) {
+    .instruments-filters {
+        align-items: stretch;
+        gap: 10px;
+        margin: 20px 0;
+    }
+
+    .instruments-filters input[type='search'] {
+        flex-basis: 100%;
+        max-width: none;
+        min-width: 0;
+    }
+
+    .instruments-filters select {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .instruments-filters button {
+        flex-shrink: 0;
+    }
+}

@@ -6,12 +6,26 @@ const PAGE_SIZE = 20;
 
 export function InstrumentsPage() {
 	const [page, setPage] = useState(1);
+	const [search, setSearch] = useState('');
+	const [type, setType] = useState<'' | 'currency' | 'metal'>('');
 
 	const { data, isLoading, isFetching, isError, refetch } =
 		useGetInstrumentsQuery({
 			page,
-			page_size: PAGE_SIZE
+			page_size: PAGE_SIZE,
+			search,
+			...(type ? { type } : {})
 		});
+
+	const handleSearchChange = (value: string) => {
+		setSearch(value);
+		setPage(1);
+	};
+
+	const handleTypeChange = (value: '' | 'currency' | 'metal') => {
+		setType(value);
+		setPage(1);
+	};
 
 	if (isLoading) {
 		return <p className="instruments-message">Loading instruments...</p>;
@@ -40,9 +54,46 @@ export function InstrumentsPage() {
 					{data.total} instruments
 				</span>
 			</div>
+
+			<div className="instruments-filters">
+				<input
+					type="search"
+					placeholder="Search by code or name..."
+					value={search}
+					onChange={(event) => handleSearchChange(event.target.value)}
+					aria-label="Search instruments"
+				/>
+
+				<select
+					value={type}
+					onChange={(event) =>
+						handleTypeChange(
+							event.target.value as '' | 'currency' | 'metal'
+						)
+					}
+					aria-label="Filter by instrument type"
+				>
+					<option value="">All types</option>
+					<option value="currency">Currencies</option>
+					<option value="metal">Metals</option>
+				</select>
+
+				<button
+					type="button"
+					onClick={() => {
+						setSearch('');
+						setType('');
+						setPage(1);
+					}}
+					disabled={!search && !type}
+				>
+					Reset
+				</button>
+			</div>
+
 			{instruments.length === 0 ? (
 				<p className="instruments-message">
-					No active instruments found.
+					No instruments match your filters.
 				</p>
 			) : (
 				<div className="instruments-table-wrapper">
@@ -74,6 +125,7 @@ export function InstrumentsPage() {
 					</table>
 				</div>
 			)}
+
 			<div className="instruments-pagination">
 				<button
 					type="button"
@@ -95,6 +147,7 @@ export function InstrumentsPage() {
 					Next
 				</button>
 			</div>
+
 			{isFetching && !isLoading && (
 				<p className="instruments-message">Updating instruments...</p>
 			)}
