@@ -1,0 +1,239 @@
+.portfolio-page {
+    width: 100%;
+    min-width: 0;
+}
+
+.portfolio-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 24px;
+}
+
+.portfolio-heading h1 {
+    margin: 0 0 8px;
+    font-size: 28px;
+    font-weight: 700;
+}
+
+.portfolio-heading p {
+    margin: 0;
+    color: #9299a5;
+    font-size: 15px;
+}
+
+.portfolio-summary {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 24px;
+    margin-bottom: 24px;
+    border: 1px solid #20242a;
+    border-radius: 12px;
+    background: #111419;
+}
+
+.portfolio-summary span {
+    color: #9299a5;
+    font-size: 14px;
+}
+
+.portfolio-summary strong {
+    font-size: 30px;
+    font-weight: 700;
+    overflow-wrap: anywhere;
+}
+
+.portfolio-table-wrapper {
+    width: 100%;
+    overflow-x: auto;
+    border: 1px solid #20242a;
+    border-radius: 12px;
+    background: #111419;
+}
+
+.portfolio-table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+}
+
+.portfolio-table th,
+.portfolio-table td {
+    padding: 16px;
+    border-bottom: 1px solid #20242a;
+    white-space: nowrap;
+}
+
+.portfolio-table th {
+    color: #9299a5;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.portfolio-table td {
+    font-size: 14px;
+}
+
+.portfolio-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.portfolio-quantity {
+    width: 120px;
+    padding: 9px 10px;
+    border: 1px solid #303640;
+    border-radius: 6px;
+    background: #0b0d10;
+    color: #f5f5f5;
+    font: inherit;
+}
+
+.portfolio-quantity:focus {
+    border-color: #6d8cff;
+    outline: none;
+}
+
+.portfolio-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.portfolio-actions button,
+.portfolio-message button {
+    padding: 9px 12px;
+    border: 1px solid #303640;
+    border-radius: 6px;
+    background: #1a1e25;
+    color: #f5f5f5;
+    font: inherit;
+    cursor: pointer;
+}
+
+.portfolio-actions button:hover,
+.portfolio-message button:hover {
+    background: #252b35;
+}
+
+.portfolio-actions button:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+
+.portfolio-actions .portfolio-delete {
+    border-color: #643333;
+    color: #ff8585;
+}
+
+.portfolio-empty {
+    padding: 40px 24px;
+    border: 1px solid #20242a;
+    border-radius: 12px;
+    background: #111419;
+    text-align: center;
+}
+
+.portfolio-empty h2 {
+    margin: 0 0 8px;
+    font-size: 20px;
+}
+
+.portfolio-empty p,
+.portfolio-message {
+    color: #9299a5;
+}
+
+.portfolio-error {
+    margin-bottom: 16px;
+    color: #ff8585;
+}
+
+@media (max-width: 640px) {
+    .portfolio-heading h1 {
+        font-size: 24px;
+    }
+
+    .portfolio-summary {
+        padding: 18px;
+    }
+
+    .portfolio-summary strong {
+        font-size: 25px;
+    }
+
+    .portfolio-table th,
+    .portfolio-table td {
+        padding: 12px;
+    }
+}
+
+.portfolio-add-form {
+    padding: 24px;
+    margin-bottom: 24px;
+    border: 1px solid #20242a;
+    border-radius: 12px;
+    background: #111419;
+}
+
+.portfolio-add-form h2 {
+    margin: 0 0 16px;
+    font-size: 18px;
+}
+
+.portfolio-add-fields {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+
+.portfolio-add-fields select,
+.portfolio-add-fields input {
+    min-width: 0;
+    padding: 11px 12px;
+    border: 1px solid #303640;
+    border-radius: 6px;
+    background: #0b0d10;
+    color: #f5f5f5;
+    font: inherit;
+}
+
+.portfolio-add-fields select {
+    flex: 1;
+}
+
+.portfolio-add-fields input {
+    width: 130px;
+}
+
+.portfolio-add-fields button {
+    padding: 11px 16px;
+    border: 0;
+    border-radius: 6px;
+    background: #5878e8;
+    color: #fff;
+    font: inherit;
+    cursor: pointer;
+}
+
+.portfolio-add-fields button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.portfolio-success {
+    margin-bottom: 16px;
+    color: #6bd6a0;
+}
+
+@media (max-width: 640px) {
+    .portfolio-add-fields {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .portfolio-add-fields select,
+    .portfolio-add-fields input {
+        width: 100%;
+    }
+}

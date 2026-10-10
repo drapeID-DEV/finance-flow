@@ -21,6 +21,9 @@ portfolio_service = PortfolioService(
     RateRepository(),
 )
 
+class AddPortfolioItemRequest(BaseModel):
+    quantity: Decimal = Field(default=Decimal("1"), gt=0)
+
 class UpdatePortfolioItemRequest(BaseModel):
     quantity: Decimal = Field(gt=0)
 
@@ -45,17 +48,73 @@ async def get_portfolio(
         user_id=current_user.id,
     )
 
+    instrument_ids = [item.instrument_id for item in items]
+
+    latest_rates = await portfolio_service.rate_repository.get_latest_for_instruments(
+        session,
+        instrument_ids,
+    )
+
+    rates_by_instrument = {
+        rate.instrument_id: rate
+        for rate in latest_rates
+    }
+
+    items_with_rates = []
+
+    for item in items:
+        rate = rates_by_instrument.get(item.instrument_id)
+
+        item_value = (
+            item.quantity * rate.rate / Decimal(rate.unit)
+            if rate is not None and rate.unit > 0
+            else None
+        )
+
+        items_with_rates.append(
+            {
+                "instrument_id": item.instrument_id,
+                "quantity": item.quantity,
+                "current_rate": rate.rate if rate is not None else None,
+                "rate_unit": rate.unit if rate is not None else None,
+                "rate_date": rate.date if rate is not None else None,
+                "value": item_value,
+            }
+        )
+
     return {
         "id": portfolio.id,
         "base_currency": portfolio.base_currency,
         "total_value": total_value,
-        "items": [
-            {
-                "instrument_id": item.instrument_id,
-                "quantity": item.quantity,
-            }
-            for item in items
-        ],
+        "items": items_with_rates,
+    }
+
+
+@router.post("/items/{instrument_id}")
+async def add_portfolio_item(
+    instrument_id: int,
+    request: AddPortfolioItemRequest,
+    current_user: User = Depends(get_current_user),
+    session: AsyncSession = Depends(get_db_session),
+) -> dict[str, object]:
+    try:
+        item = await portfolio_service.add_item(
+            session,
+            user_id=current_user.id,
+            instrument_id=instrument_id,
+            quantity=request.quantity,
+        )
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=404,
+            detail=str(exc),
+        ) from exc
+
+    await session.commit()
+
+    return {
+        "instrument_id": item.instrument_id,
+        "quantity": item.quantity,
     }
 
 

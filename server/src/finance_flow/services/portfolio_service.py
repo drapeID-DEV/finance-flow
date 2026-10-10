@@ -1,8 +1,10 @@
 from datetime import UTC, datetime
 from decimal import Decimal
 
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from finance_flow.models.instrument import Instrument
 from finance_flow.models.portfolio import Portfolio
 from finance_flow.models.portfolio_item import PortfolioItem
 from finance_flow.repositories.portfolio_repository import PortfolioRepository
@@ -61,6 +63,17 @@ class PortfolioService:
         instrument_id: int,
         quantity: Decimal = Decimal("1"),
     ) -> PortfolioItem:
+        result = await session.execute(
+            select(Instrument).where(
+                Instrument.id == instrument_id,
+                Instrument.is_active.is_(True),
+            )
+        )
+        instrument = result.scalar_one_or_none()
+
+        if instrument is None:
+            raise ValueError("Active instrument not found")
+        
         portfolio = await self.get_or_create(
             session,
             user_id,
