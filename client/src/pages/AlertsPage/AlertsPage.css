@@ -77,6 +77,7 @@
 .alert-card .alert-condition {
     color: #f9fafb;
     font-weight: 600;
+    margin-bottom: 10px;
 }
 
 .alert-status {
