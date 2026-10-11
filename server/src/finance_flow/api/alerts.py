@@ -106,3 +106,24 @@ async def get_alerts(
         )
         for alert in alerts
     ]
+
+
+@router.delete("/{alert_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_alert(
+    alert_id: int,
+    current_user: User = Depends(get_current_user),
+    session: AsyncSession = Depends(get_db_session),
+) -> None:
+    deleted = await alert_service.delete_alert(
+        session,
+        user_id=current_user.id,
+        alert_id=alert_id,
+    )
+
+    if not deleted:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Alert not found",
+        )
+
+    await session.commit()

@@ -50,3 +50,11 @@ class AlertRepository:
             .order_by(Alert.id)
         )
         return list(result.scalars().all())
+
+    async def delete(
+        self,
+        session: AsyncSession,
+        alert: Alert,
+    ) -> None:
+        await session.delete(alert)
+        await session.flush()

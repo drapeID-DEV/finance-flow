@@ -30,8 +30,19 @@ export const alertApi = baseApi.injectEndpoints({
 				body
 			}),
 			invalidatesTags: ['Alert']
+		}),
+		deleteAlert: builder.mutation<void, number>({
+			query: (alertId) => ({
+				url: `/alerts/${alertId}`,
+				method: 'DELETE'
+			}),
+			invalidatesTags: ['Alert']
 		})
 	})
 });
 
-export const { useGetAlertsQuery, useCreateAlertMutation } = alertApi;
+export const {
+	useGetAlertsQuery,
+	useCreateAlertMutation,
+	useDeleteAlertMutation
+} = alertApi;

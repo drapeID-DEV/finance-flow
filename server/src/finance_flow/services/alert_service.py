@@ -90,3 +90,20 @@ class AlertService:
         await session.flush()
 
         return triggered_alerts
+
+    async def delete_alert(
+        self,
+        session: AsyncSession,
+        user_id: int,
+        alert_id: int,
+    ) -> bool:
+        alert = await self.repository.get_by_id(
+            session,
+            alert_id=alert_id,
+        )
+
+        if alert is None or alert.user_id != user_id:
+            return False
+
+        await self.repository.delete(session, alert)
+        return True
