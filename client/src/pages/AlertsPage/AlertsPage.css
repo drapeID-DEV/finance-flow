@@ -1,0 +1,108 @@
+.alerts-page {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.alerts-heading h1 {
+    margin: 0 0 8px;
+}
+
+.alerts-heading p {
+    margin: 0;
+    color: #9ca3af;
+}
+
+.alert-form,
+.alert-card,
+.alerts-empty {
+    padding: 20px;
+    border: 1px solid #374151;
+    border-radius: 12px;
+    background: #1f2937;
+}
+
+.alert-form h2,
+.alerts-list h2 {
+    margin: 0 0 20px;
+}
+
+.alert-form-fields {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 16px;
+    align-items: end;
+}
+
+.alert-form-fields label {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    font-size: 14px;
+}
+
+.alert-form-fields input,
+.alert-form-fields select {
+    width: 100%;
+    min-width: 0;
+    padding: 10px 12px;
+    border: 1px solid #4b5563;
+    border-radius: 8px;
+    color: #f9fafb;
+    background: #111827;
+    font: inherit;
+}
+
+.alerts-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 16px;
+}
+
+.alert-card-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.alert-card-heading h3 {
+    margin: 0;
+}
+
+.alert-card p {
+    color: #9ca3af;
+}
+
+.alert-card .alert-condition {
+    color: #f9fafb;
+    font-weight: 600;
+}
+
+.alert-status {
+    padding: 4px 8px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.alert-status--active {
+    color: #86efac;
+    background: #14532d;
+}
+
+.alert-status--triggered {
+    color: #fcd34d;
+    background: #78350f;
+}
+
+.alerts-message,
+.alerts-empty {
+    color: #9ca3af;
+}
+
+@media (max-width: 800px) {
+    .alert-form-fields {
+        grid-template-columns: 1fr;
+    }
+}
