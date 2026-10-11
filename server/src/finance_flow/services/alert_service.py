@@ -18,6 +18,7 @@ class AlertService:
         instrument_id: int,
         direction: str,
         value: Decimal,
+        current_rate: Decimal | None = None,
     ) -> Alert:
         if direction not in {"above", "below"}:
             raise ValueError("Invalid alert direction")
@@ -34,7 +35,17 @@ class AlertService:
             created_at=datetime.now(UTC),
         )
 
-        return await self.repository.add(session, alert)
+        await self.repository.add(session, alert)
+
+        # Immediately check the latest known rate, if available.
+        if current_rate is not None:
+            await self.check_alerts(
+                session,
+                instrument_id=instrument_id,
+                current_rate=current_rate,
+            )
+
+        return alert
 
     async def get_user_alerts(
         self,

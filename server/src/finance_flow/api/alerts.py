@@ -8,6 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from finance_flow.dependencies import get_current_user, get_db_session
 from finance_flow.models.user import User
 from finance_flow.repositories.alert_repository import AlertRepository
+from finance_flow.repositories.rate_repository import RateRepository
 from finance_flow.services.alert_service import AlertService
 
 router = APIRouter(
@@ -16,6 +17,7 @@ router = APIRouter(
 )
 
 alert_service = AlertService(AlertRepository())
+rate_repository = RateRepository()
 
 
 class CreateAlertRequest(BaseModel):
@@ -43,12 +45,18 @@ async def create_alert(
     session: AsyncSession = Depends(get_db_session),
 ) -> AlertResponse:
     try:
+        latest_rate = await rate_repository.get_latest_by_instrument(
+            session,
+            instrument_id=request.instrument_id,
+        )
+
         alert = await alert_service.create_alert(
             session,
             user_id=current_user.id,
             instrument_id=request.instrument_id,
             direction=request.direction,
             value=request.value,
+            current_rate=latest_rate.rate if latest_rate else None,
         )
 
         await session.commit()

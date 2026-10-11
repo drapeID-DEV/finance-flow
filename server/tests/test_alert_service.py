@@ -235,3 +235,81 @@ async def test_check_alerts_below_and_only_once(db_session: AsyncSession) -> Non
     )
 
     assert triggered_again == []
+
+
+@pytest.mark.asyncio
+async def test_create_alert_triggers_when_rate_already_reached(
+    db_session: AsyncSession,
+) -> None:
+    repository = AlertRepository()
+    service = AlertService(repository)
+
+    instrument = Instrument(
+        code=f"ALERT_{uuid4().hex[:8]}",
+        name="Alert Test",
+        type="currency",
+        is_active=True,
+    )
+    db_session.add(instrument)
+    await db_session.flush()
+
+    user = User(
+        email=f"alert-triggered-{uuid4()}@example.com",
+        password_hash="test-hash",
+        role="user",
+        is_active=True,
+        created_at=datetime.now(UTC),
+    )
+    db_session.add(user)
+    await db_session.flush()
+
+    alert = await service.create_alert(
+        db_session,
+        user_id=user.id,
+        instrument_id=instrument.id,
+        direction="above",
+        value=Decimal("44"),
+        current_rate=Decimal("44.50"),
+    )
+
+    assert alert.status == "triggered"
+    assert alert.triggered_at is not None
+
+
+@pytest.mark.asyncio
+async def test_create_alert_stays_active_when_rate_not_reached(
+    db_session: AsyncSession,
+) -> None:
+    repository = AlertRepository()
+    service = AlertService(repository)
+
+    instrument = Instrument(
+        code=f"ALERT_{uuid4().hex[:8]}",
+        name="Alert Test",
+        type="currency",
+        is_active=True,
+    )
+    db_session.add(instrument)
+    await db_session.flush()
+
+    user = User(
+        email=f"alert-active-{uuid4()}@example.com",
+        password_hash="test-hash",
+        role="user",
+        is_active=True,
+        created_at=datetime.now(UTC),
+    )
+    db_session.add(user)
+    await db_session.flush()
+
+    alert = await service.create_alert(
+        db_session,
+        user_id=user.id,
+        instrument_id=instrument.id,
+        direction="above",
+        value=Decimal("44"),
+        current_rate=Decimal("43.50"),
+    )
+
+    assert alert.status == "active"
+    assert alert.triggered_at is None
