@@ -50,6 +50,12 @@ export function AlertItem({ alert, instrument }: AlertItemProps) {
 					})}{' '}
 					UAH
 				</p>
+				{alert.status === 'triggered' && alert.triggered_at && (
+					<p className="alert-triggered-at">
+						Triggered:{' '}
+						{new Date(alert.triggered_at).toLocaleString()}
+					</p>
+				)}
 				<Button
 					type="button"
 					variant="danger"

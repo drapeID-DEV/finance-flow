@@ -78,7 +78,6 @@ export default function AnalyticsPage() {
 					</p>
 				</div>
 			</header>
-
 			<AnalyticsControls
 				instruments={instruments}
 				selectedCode={selectedCode}
@@ -88,20 +87,17 @@ export default function AnalyticsPage() {
 				onPeriodChange={setPeriod}
 				onAggregationChange={setAggregation}
 			/>
-
 			<AnalyticsInstrumentInfo
 				instrument={selectedInstrument}
 				from={from}
 				to={to}
 			/>
-
 			<InstrumentComparisonSection
 				instruments={instruments}
 				selectedCode={selectedCode}
 				from={from}
 				to={to}
 			/>
-
 			{!selectedCode ? (
 				<AnalyticsState type="empty" />
 			) : isHistoryLoading ? (

@@ -102,6 +102,12 @@
     color: #9ca3af;
 }
 
+.alert-card .alert-triggered-at {
+    margin-top: 8px;
+    font-size: 13px;
+    color: #fcd34d;
+}
+
 @media (max-width: 800px) {
     .alert-form-fields {
         grid-template-columns: 1fr;

@@ -1,5 +1,7 @@
 from decimal import Decimal
 
+from datetime import datetime
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, Field
 from sqlalchemy.exc import IntegrityError
@@ -32,6 +34,7 @@ class AlertResponse(BaseModel):
     direction: str
     value: Decimal
     status: str
+    triggered_at: datetime | None
 
 
 @router.post(
@@ -80,6 +83,7 @@ async def create_alert(
         direction=alert.direction,
         value=alert.value,
         status=alert.status,
+        triggered_at=alert.triggered_at,
     )
 
 
@@ -103,6 +107,7 @@ async def get_alerts(
             direction=alert.direction,
             value=alert.value,
             status=alert.status,
+            triggered_at=alert.triggered_at,
         )
         for alert in alerts
     ]

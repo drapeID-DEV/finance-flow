@@ -9,6 +9,7 @@ export interface Alert {
 	direction: AlertDirection;
 	value: number | string;
 	status: AlertStatus;
+	triggered_at: string | null;
 }
 
 export interface CreateAlertRequest {
