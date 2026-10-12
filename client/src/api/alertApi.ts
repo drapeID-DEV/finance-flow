@@ -22,7 +22,8 @@ export const alertApi = baseApi.injectEndpoints({
 	endpoints: (builder) => ({
 		getAlerts: builder.query<Alert[], void>({
 			query: () => '/alerts',
-			providesTags: ['Alert']
+			providesTags: ['Alert'],
+			keepUnusedDataFor: 60
 		}),
 		createAlert: builder.mutation<Alert, CreateAlertRequest>({
 			query: (body) => ({

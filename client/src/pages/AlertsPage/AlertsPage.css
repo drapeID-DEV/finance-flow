@@ -103,7 +103,7 @@
 }
 
 .alert-card .alert-triggered-at {
-    margin-top: 8px;
+    margin: 18px 0;
     font-size: 13px;
     color: #fcd34d;
 }

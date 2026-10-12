@@ -10,7 +10,11 @@ export default function AlertsPage() {
 		isLoading: isAlertsLoading,
 		isError: isAlertsError,
 		refetch
-	} = useGetAlertsQuery();
+	} = useGetAlertsQuery(undefined, {
+		pollingInterval: 30_000,
+		refetchOnFocus: true,
+		refetchOnReconnect: true
+	});
 
 	const {
 		data: instrumentsData,
