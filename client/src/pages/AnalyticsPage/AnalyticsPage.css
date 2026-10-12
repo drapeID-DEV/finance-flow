@@ -282,3 +282,33 @@
 .analytics-state button:hover {
     border-color: #647cf4;
 }
+
+.analytics-comparison-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    margin-bottom: 16px;
+    color: #cbd5e1;
+    font-size: 13px;
+}
+
+.analytics-comparison-legend span {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.comparison-dot {
+    display: inline-block;
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+}
+
+.comparison-dot-first {
+    background: #818cf8;
+}
+
+.comparison-dot-second {
+    background: #34d399;
+}

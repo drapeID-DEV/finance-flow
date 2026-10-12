@@ -16,9 +16,11 @@ import {
 	type AnalyticsPeriod
 } from './utils/analyticsUtils';
 import './AnalyticsPage.css';
+import { InstrumentComparisonSection } from './components/InstrumentComparison/InstrumentComparisonSection';
 
 export default function AnalyticsPage() {
 	const [selectedCode, setSelectedCode] = useState('');
+	const [compareCode, setCompareCode] = useState('');
 	const [period, setPeriod] = useState<AnalyticsPeriod>(30);
 	const [aggregation, setAggregation] = useState<RateAggregation>('day');
 
@@ -32,6 +34,21 @@ export default function AnalyticsPage() {
 	const instruments = (instrumentsData?.items ?? []).filter(
 		(instrument) => instrument.is_active
 	);
+
+	useEffect(() => {
+		if (
+			instruments.length > 1 &&
+			(!compareCode || compareCode === selectedCode)
+		) {
+			const secondInstrument = instruments.find(
+				(instrument) => instrument.code !== selectedCode
+			);
+
+			if (secondInstrument) {
+				setCompareCode(secondInstrument.code);
+			}
+		}
+	}, [instruments, selectedCode, compareCode]);
 
 	useEffect(() => {
 		if (!selectedCode && instruments.length > 0) {
@@ -94,7 +111,6 @@ export default function AnalyticsPage() {
 					</p>
 				</div>
 			</header>
-
 			<AnalyticsControls
 				instruments={instruments}
 				selectedCode={selectedCode}
@@ -104,13 +120,17 @@ export default function AnalyticsPage() {
 				onPeriodChange={setPeriod}
 				onAggregationChange={setAggregation}
 			/>
-
 			<AnalyticsInstrumentInfo
 				instrument={selectedInstrument}
 				from={from}
 				to={to}
 			/>
-
+			<InstrumentComparisonSection
+				instruments={instruments}
+				selectedCode={selectedCode}
+				from={from}
+				to={to}
+			/>
 			{!selectedCode ? (
 				<AnalyticsState type="empty" />
 			) : isHistoryLoading ? (

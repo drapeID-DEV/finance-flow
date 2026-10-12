@@ -29,6 +29,19 @@ export type RateHistoryResponse =
 	| RateHistoryItem[]
 	| AggregatedRateHistoryItem[];
 
+export interface InstrumentComparisonItem {
+	date: string;
+	first_rate: number | string;
+	second_rate: number | string;
+}
+
+export interface InstrumentComparisonParams {
+	first: string;
+	second: string;
+	from: string;
+	to: string;
+}
+
 export const ratesApi = baseApi.injectEndpoints({
 	endpoints: (builder) => ({
 		getRateHistory: builder.query<RateHistoryResponse, RateHistoryParams>({
@@ -37,8 +50,18 @@ export const ratesApi = baseApi.injectEndpoints({
 				params: { from, to, agg: aggregation }
 			}),
 			providesTags: ['Rate']
+		}),
+		getInstrumentComparison: builder.query<
+			InstrumentComparisonItem[],
+			InstrumentComparisonParams
+		>({
+			query: ({ first, second, from, to }) => ({
+				url: '/instruments/compare',
+				params: { first, second, from, to }
+			})
 		})
 	})
 });
 
-export const { useGetRateHistoryQuery } = ratesApi;
+export const { useGetRateHistoryQuery, useGetInstrumentComparisonQuery } =
+	ratesApi;
