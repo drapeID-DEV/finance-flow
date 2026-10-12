@@ -16,11 +16,12 @@ class InstrumentRepository:
         )
         return result.scalar_one_or_none()
 
+
     @staticmethod
     def _active_filters(
         search: str | None = None,
         instrument_type: str | None = None,
-    ) -> list:
+    ) -> list[ColumnElement[bool]]:
         filters: list[ColumnElement[bool]] = [
             Instrument.is_active.is_(True),
         ]
@@ -38,6 +39,7 @@ class InstrumentRepository:
             filters.append(Instrument.type == instrument_type)
 
         return filters
+
 
     async def get_active(
         self,

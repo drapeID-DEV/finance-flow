@@ -1,26 +1,18 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useGetInstrumentsQuery } from '../../api/instrumentsApi';
-import {
-	useGetRateHistoryQuery,
-	type RateAggregation
-} from '../../api/ratesApi';
+import type { RateAggregation } from '../../api/ratesApi';
 import { AnalyticsControls } from './components/AnalyticsControls';
 import { AnalyticsInstrumentInfo } from './components/AnalyticsInstrumentInfo';
 import { AnalyticsStats } from './components/AnalyticsStats';
 import { AnalyticsState } from './components/AnalyticsState';
-import { RateHistoryChart } from './components/RateHistoryChart';
-import {
-	calculateRateStats,
-	formatDate,
-	mapHistoryToChart,
-	type AnalyticsPeriod
-} from './utils/analyticsUtils';
-import './AnalyticsPage.css';
 import { InstrumentComparisonSection } from './components/InstrumentComparison/InstrumentComparisonSection';
+import { RateHistoryChart } from './components/RateHistoryChart';
+import { useAnalyticsData } from './hooks/useAnalyticsData';
+import type { AnalyticsPeriod } from './utils/analyticsUtils';
+import './AnalyticsPage.css';
 
 export default function AnalyticsPage() {
 	const [selectedCode, setSelectedCode] = useState('');
-	const [compareCode, setCompareCode] = useState('');
 	const [period, setPeriod] = useState<AnalyticsPeriod>(30);
 	const [aggregation, setAggregation] = useState<RateAggregation>('day');
 
@@ -36,50 +28,25 @@ export default function AnalyticsPage() {
 	);
 
 	useEffect(() => {
-		if (
-			instruments.length > 1 &&
-			(!compareCode || compareCode === selectedCode)
-		) {
-			const secondInstrument = instruments.find(
-				(instrument) => instrument.code !== selectedCode
-			);
-
-			if (secondInstrument) {
-				setCompareCode(secondInstrument.code);
-			}
-		}
-	}, [instruments, selectedCode, compareCode]);
-
-	useEffect(() => {
 		if (!selectedCode && instruments.length > 0) {
 			setSelectedCode(instruments[0].code);
 		}
 	}, [instruments, selectedCode]);
 
-	const { from, to } = useMemo(() => {
-		const end = new Date();
-		const start = new Date(end);
-		start.setDate(start.getDate() - (period - 1));
-
-		return { from: formatDate(start), to: formatDate(end) };
-	}, [period]);
-
 	const {
-		data: history,
-		isLoading: isHistoryLoading,
-		isFetching: isHistoryFetching,
-		isError: isHistoryError,
-		refetch: refetchHistory
-	} = useGetRateHistoryQuery(
-		{ code: selectedCode, from, to, aggregation },
-		{ skip: !selectedCode }
-	);
-
-	const chartData = useMemo(
-		() => mapHistoryToChart(history ?? [], aggregation),
-		[history, aggregation]
-	);
-	const stats = useMemo(() => calculateRateStats(chartData), [chartData]);
+		from,
+		to,
+		chartData,
+		stats,
+		isHistoryLoading,
+		isHistoryFetching,
+		isHistoryError,
+		refetchHistory
+	} = useAnalyticsData({
+		selectedCode,
+		period,
+		aggregation
+	});
 
 	const selectedInstrument = instruments.find(
 		(instrument) => instrument.code === selectedCode
@@ -111,6 +78,7 @@ export default function AnalyticsPage() {
 					</p>
 				</div>
 			</header>
+
 			<AnalyticsControls
 				instruments={instruments}
 				selectedCode={selectedCode}
@@ -120,17 +88,20 @@ export default function AnalyticsPage() {
 				onPeriodChange={setPeriod}
 				onAggregationChange={setAggregation}
 			/>
+
 			<AnalyticsInstrumentInfo
 				instrument={selectedInstrument}
 				from={from}
 				to={to}
 			/>
+
 			<InstrumentComparisonSection
 				instruments={instruments}
 				selectedCode={selectedCode}
 				from={from}
 				to={to}
 			/>
+
 			{!selectedCode ? (
 				<AnalyticsState type="empty" />
 			) : isHistoryLoading ? (

@@ -99,6 +99,24 @@ async def test_collect_rates(db_session: AsyncSession) -> None:
         assert saved_rate.rate == Decimal("41.25")
         assert saved_rate.unit == 1
 
+        second_saved_count = await collection_service.collect(
+            db_session,
+            date(2026, 10, 1),
+        )
+
+        assert second_saved_count == 0
+
+        saved_rate_after_retry = (
+            await rate_repository.get_by_instrument_and_date(
+                db_session,
+                instrument.id,
+                date(2026, 10, 1),
+            )
+        )
+
+        assert saved_rate_after_retry is not None
+        assert saved_rate_after_retry.rate == Decimal("41.25")
+
 @pytest.mark.asyncio
 async def test_collect_without_rates(db_session: AsyncSession) -> None:
     transport = httpx.MockTransport(
@@ -149,8 +167,75 @@ async def test_collect_without_rates(db_session: AsyncSession) -> None:
         ("xau", "metal"),
     ],
 )
+
 def test_get_instrument_type(
     code: str,
     expected_type: str,
 ) -> None:
     assert get_instrument_type(code) == expected_type
+
+
+
+@pytest.mark.asyncio
+async def test_collect_raises_on_server_error(
+    db_session: AsyncSession,
+) -> None:
+    transport = httpx.MockTransport(
+        lambda request: httpx.Response(500),
+    )
+
+    async with httpx.AsyncClient(transport=transport) as client:
+        source = NbuSource(client)
+
+        collection_service = CollectionService(
+            source=source,
+            rate_service=RateService(
+                RateRepository(),
+                InstrumentRepository(),
+                AlertService(AlertRepository()),
+            ),
+            instrument_service=InstrumentService(
+                repository=InstrumentRepository(),
+            ),
+        )
+
+        with pytest.raises(httpx.HTTPStatusError):
+            await collection_service.collect(
+                db_session,
+                date(2026, 10, 12),
+            )
+
+
+
+@pytest.mark.asyncio
+async def test_collect_raises_on_network_error(
+    db_session: AsyncSession,
+) -> None:
+    def raise_network_error(request: httpx.Request) -> httpx.Response:
+        raise httpx.ConnectError(
+            "NBU API is unavailable",
+            request=request,
+        )
+
+    transport = httpx.MockTransport(raise_network_error)
+
+    async with httpx.AsyncClient(transport=transport) as client:
+        source = NbuSource(client)
+
+        collection_service = CollectionService(
+            source=source,
+            rate_service=RateService(
+                RateRepository(),
+                InstrumentRepository(),
+                AlertService(AlertRepository()),
+            ),
+            instrument_service=InstrumentService(
+                repository=InstrumentRepository(),
+            ),
+        )
+
+        with pytest.raises(httpx.ConnectError):
+            await collection_service.collect(
+                db_session,
+                date(2026, 10, 12),
+            )
