@@ -1,40 +1,31 @@
-import { useState } from 'react';
-import { useGetInstrumentsQuery } from '../../api/instrumentsApi';
 import { InstrumentsFilters } from './components/InstrumentsFilters';
 import { InstrumentsTable } from './components/InstrumentsTable';
 import { InstrumentsPagination } from './components/InstrumentsPagination';
+import { useInstrumentsPage } from './hooks/useInstrumentsPage';
 import './InstrumentsPage.css';
-
-const PAGE_SIZE = 20;
+import { InstrumentStatusModal } from './components/InstrumentStatusModal';
 
 export function InstrumentsPage() {
-	const [page, setPage] = useState(1);
-	const [search, setSearch] = useState('');
-	const [type, setType] = useState<'' | 'currency' | 'metal'>('');
-
-	const { data, isLoading, isFetching, isError, refetch } =
-		useGetInstrumentsQuery({
-			page,
-			page_size: PAGE_SIZE,
-			search,
-			...(type ? { type } : {})
-		});
-
-	const handleSearchChange = (value: string) => {
-		setSearch(value);
-		setPage(1);
-	};
-
-	const handleTypeChange = (value: '' | 'currency' | 'metal') => {
-		setType(value);
-		setPage(1);
-	};
-
-	const handleReset = () => {
-		setSearch('');
-		setType('');
-		setPage(1);
-	};
+	const {
+		isAdmin,
+		page,
+		setPage,
+		search,
+		type,
+		actionError,
+		instrumentToToggle,
+		setInstrumentToToggle,
+		data,
+		isLoading,
+		isFetching,
+		isError,
+		isUpdating,
+		refetch,
+		handleSearchChange,
+		handleTypeChange,
+		handleReset,
+		handleToggleStatus
+	} = useInstrumentsPage();
 
 	if (isLoading) {
 		return <p className="instruments-message">Loading instruments...</p>;
@@ -44,7 +35,7 @@ export function InstrumentsPage() {
 		return (
 			<div className="instruments-message">
 				<p>Failed to load instruments.</p>
-				<button type="button" onClick={() => refetch()}>
+				<button type="button" onClick={() => void refetch()}>
 					Try again
 				</button>
 			</div>
@@ -57,9 +48,18 @@ export function InstrumentsPage() {
 		<div className="instruments-page">
 			<div className="instruments-heading">
 				<div>
-					<h1>Currencies &amp; Metals</h1>
-					<p>Browse available financial instruments.</p>
+					<h1>
+						{isAdmin
+							? 'Instrument Management'
+							: 'Currencies & Metals'}
+					</h1>
+					<p>
+						{isAdmin
+							? 'Manage available currencies and precious metals.'
+							: 'Browse available financial instruments.'}
+					</p>
 				</div>
+
 				<span className="instruments-count">
 					{data.total} instruments
 				</span>
@@ -71,7 +71,17 @@ export function InstrumentsPage() {
 				onTypeChange={handleTypeChange}
 				onReset={handleReset}
 			/>
-			<InstrumentsTable instruments={data.items} />
+			{actionError && (
+				<p className="instruments-action-error" role="alert">
+					{actionError}
+				</p>
+			)}
+			<InstrumentsTable
+				instruments={data.items}
+				isAdmin={isAdmin}
+				isUpdating={isUpdating}
+				onToggleStatus={setInstrumentToToggle}
+			/>
 			<InstrumentsPagination
 				page={page}
 				totalPages={totalPages}
@@ -81,6 +91,16 @@ export function InstrumentsPage() {
 			{isFetching && (
 				<p className="instruments-message">Updating instruments...</p>
 			)}
+			<InstrumentStatusModal
+				instrument={instrumentToToggle}
+				isLoading={isUpdating}
+				onClose={() => setInstrumentToToggle(null)}
+				onConfirm={() => {
+					if (instrumentToToggle) {
+						void handleToggleStatus(instrumentToToggle);
+					}
+				}}
+			/>
 		</div>
 	);
 }

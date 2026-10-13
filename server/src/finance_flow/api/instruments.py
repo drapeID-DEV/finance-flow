@@ -2,12 +2,19 @@ from datetime import date
 from decimal import Decimal
 from typing import Literal
 
+from sqlalchemy import func, select
+
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from finance_flow.dependencies import get_current_admin, get_db_session
+from finance_flow.dependencies import (
+    get_current_admin,
+    get_current_user,
+    get_db_session,
+)
 from finance_flow.models.user import User
+from finance_flow.models.instrument import Instrument
 from finance_flow.repositories.alert_repository import AlertRepository
 from finance_flow.repositories.instrument_repository import InstrumentRepository
 from finance_flow.repositories.rate_repository import RateRepository
@@ -67,6 +74,68 @@ async def get_instruments(
         "page": page,
         "page_size": page_size,
         "total": total,
+    }
+
+
+@router.get("/admin/all")
+async def get_all_instruments(
+    page: int = Query(default=1, ge=1),
+    page_size: int = Query(default=20, ge=1, le=100),
+    search: str | None = Query(default=None, max_length=100),
+    instrument_type: Literal["currency", "metal"] | None = Query(
+        default=None,
+        alias="type",
+    ),
+    current_user: User = Depends(get_current_admin),
+    session: AsyncSession = Depends(get_db_session),
+) -> dict[str, object]:
+    offset = (page - 1) * page_size
+    filters = []
+
+    if search and search.strip():
+        from sqlalchemy import or_
+
+        pattern = f"%{search.strip()}%"
+        filters.append(
+            or_(
+                Instrument.code.ilike(pattern),
+                Instrument.name.ilike(pattern),
+            )
+        )
+
+    if instrument_type:
+        filters.append(Instrument.type == instrument_type)
+
+    query = select(Instrument).where(*filters)
+
+    result = await session.execute(
+        query
+        .order_by(Instrument.code)
+        .offset(offset)
+        .limit(page_size)
+    )
+    instruments = list(result.scalars().all())
+
+    count_result = await session.execute(
+        select(func.count())
+        .select_from(Instrument)
+        .where(*filters)
+    )
+
+    return {
+        "items": [
+            {
+                "id": instrument.id,
+                "code": instrument.code,
+                "name": instrument.name,
+                "type": instrument.type,
+                "is_active": instrument.is_active,
+            }
+            for instrument in instruments
+        ],
+        "page": page,
+        "page_size": page_size,
+        "total": count_result.scalar_one(),
     }
 
 

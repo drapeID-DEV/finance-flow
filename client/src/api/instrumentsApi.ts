@@ -22,6 +22,11 @@ export interface InstrumentsQuery {
 	type?: 'currency' | 'metal';
 }
 
+export interface UpdateInstrumentStatusRequest {
+	code: string;
+	is_active: boolean;
+}
+
 export const instrumentsApi = baseApi.injectEndpoints({
 	endpoints: (builder) => ({
 		getInstruments: builder.query<InstrumentsResponse, InstrumentsQuery>({
@@ -35,8 +40,38 @@ export const instrumentsApi = baseApi.injectEndpoints({
 				}
 			}),
 			providesTags: ['Instrument']
+		}),
+		getAllAdminInstruments: builder.query<
+			InstrumentsResponse,
+			InstrumentsQuery
+		>({
+			query: ({ page, page_size, search, type }) => ({
+				url: '/instruments/admin/all',
+				params: {
+					page,
+					page_size,
+					...(search?.trim() ? { search: search.trim() } : {}),
+					...(type ? { type } : {})
+				}
+			}),
+			providesTags: ['Instrument']
+		}),
+		updateInstrumentStatus: builder.mutation<
+			{ code: string; is_active: boolean },
+			UpdateInstrumentStatusRequest
+		>({
+			query: ({ code, is_active }) => ({
+				url: `/instruments/${encodeURIComponent(code)}/status`,
+				method: 'PATCH',
+				body: { is_active }
+			}),
+			invalidatesTags: ['Instrument']
 		})
 	})
 });
 
-export const { useGetInstrumentsQuery } = instrumentsApi;
+export const {
+	useGetInstrumentsQuery,
+	useGetAllAdminInstrumentsQuery,
+	useUpdateInstrumentStatusMutation
+} = instrumentsApi;

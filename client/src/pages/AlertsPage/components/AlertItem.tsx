@@ -3,7 +3,7 @@ import type { Alert } from '../../../api/alertApi';
 import { useDeleteAlertMutation } from '../../../api/alertApi';
 import type { Instrument } from '../../../api/instrumentsApi';
 import { Button } from '../../../shared/ui/Button/Button';
-import { DeleteAlertModal } from './DeleteAlertModal/DeleteAlertModal';
+import { ConfirmModal } from '../../../shared/ui/ConfirmModal/ConfirmModal';
 
 interface AlertItemProps {
 	alert: Alert;
@@ -64,10 +64,21 @@ export function AlertItem({ alert, instrument }: AlertItemProps) {
 					Delete
 				</Button>
 			</article>
-			<DeleteAlertModal
+			<ConfirmModal
 				isOpen={isModalOpen}
-				isDeleting={isDeleting}
-				alertName={instrument?.code ?? `#${alert.instrument_id}`}
+				isLoading={isDeleting}
+				title="Delete price alert?"
+				description={
+					<>
+						Are you sure you want to delete the alert for{' '}
+						<strong>
+							{instrument?.code ?? `#${alert.instrument_id}`}
+						</strong>
+						? This action cannot be undone.
+					</>
+				}
+				confirmText="Delete alert"
+				variant="danger"
 				onClose={closeModal}
 				onConfirm={() => void handleDelete()}
 			/>
