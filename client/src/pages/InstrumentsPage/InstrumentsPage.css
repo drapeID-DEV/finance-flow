@@ -295,3 +295,9 @@
     color: #fecaca;
     font-size: 14px;
 }
+
+.instrument-rate-date {
+    margin-top: 4px;
+    font-size: 12px;
+    opacity: 0.65;
+}

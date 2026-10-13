@@ -54,6 +54,17 @@ async def get_instruments(
         search=search,
         instrument_type=instrument_type,
     )
+
+    latest_rates = await rate_repository.get_latest_for_instruments(
+    session,
+    [instrument.id for instrument in instruments],
+    )
+
+    rates_by_instrument = {
+        rate.instrument_id: rate
+        for rate in latest_rates
+    }
+
     total = await repository.count_active(
         session,
         search=search,
@@ -68,12 +79,24 @@ async def get_instruments(
                 "name": instrument.name,
                 "type": instrument.type,
                 "is_active": instrument.is_active,
+                "current_rate": (
+                    str(rates_by_instrument[instrument.id].rate)
+                    if instrument.id in rates_by_instrument
+                    else None
+                ),
+                "rate_unit": (
+                    rates_by_instrument[instrument.id].unit
+                    if instrument.id in rates_by_instrument
+                    else None
+                ),
+                "rate_date": (
+                    rates_by_instrument[instrument.id].date
+                    if instrument.id in rates_by_instrument
+                    else None
+                ),
             }
             for instrument in instruments
         ],
-        "page": page,
-        "page_size": page_size,
-        "total": total,
     }
 
 

@@ -28,6 +28,7 @@ export function InstrumentsTable({
 					<tr>
 						<th>Code</th>
 						<th>Name</th>
+						<th>Current rate</th>
 						<th>Type</th>
 						<th>Status</th>
 						{isAdmin && <th>Action</th>}
@@ -40,6 +41,31 @@ export function InstrumentsTable({
 								{instrument.code}
 							</td>
 							<td>{instrument.name}</td>
+							<td>
+								{instrument.current_rate !== null &&
+								instrument.current_rate !== undefined ? (
+									<div>
+										<strong>
+											{Number(
+												instrument.current_rate
+											).toLocaleString('en-US', {
+												maximumFractionDigits: 8
+											})}
+										</strong>
+										<div className="instrument-rate-date">
+											{instrument.rate_date
+												? new Date(
+														`${instrument.rate_date}T00:00:00`
+													).toLocaleDateString(
+														'uk-UA'
+													)
+												: ''}
+										</div>
+									</div>
+								) : (
+									<span>—</span>
+								)}
+							</td>
 							<td>{instrument.type}</td>
 							<td>
 								<span

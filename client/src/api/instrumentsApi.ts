@@ -6,6 +6,9 @@ export interface Instrument {
 	name: string;
 	type: string;
 	is_active: boolean;
+	current_rate: string | null;
+	rate_unit: number | null;
+	rate_date: string | null;
 }
 
 export interface InstrumentsResponse {
