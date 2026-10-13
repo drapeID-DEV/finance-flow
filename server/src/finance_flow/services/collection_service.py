@@ -1,4 +1,5 @@
-from datetime import date
+
+from datetime import date, timedelta
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -30,34 +31,50 @@ class CollectionService:
         session: AsyncSession,
         rate_date: date,
     ) -> int:
-        rates = await self.source.get_rates(
-            rate_date.strftime("%Y%m%d"),
+        latest_date = (
+            await self.rate_service.rate_repository.get_latest_rate_date(
+                session
+            )
         )
+
+        if latest_date is None or rate_date <= latest_date:
+            dates_to_collect = [rate_date]
+        else:
+            current_date = latest_date + timedelta(days=1)
+            dates_to_collect = []
+
+            while current_date <= rate_date:
+                dates_to_collect.append(current_date)
+                current_date += timedelta(days=1)
 
         saved_count = 0
 
-        for nbu_rate in rates:
-            instrument = Instrument(
-                code=nbu_rate.code,
-                name=nbu_rate.name,
-                type=get_instrument_type(nbu_rate.code),
-                is_active=True,
+        for current_date in dates_to_collect:
+            rates = await self.source.get_rates(
+                current_date.strftime("%Y%m%d")
             )
 
-            await self.instrument_service.create(
-                session,
-                instrument,
-            )
+            for nbu_rate in rates:
+                instrument = Instrument(
+                    code=nbu_rate.code,
+                    name=nbu_rate.name,
+                    type=get_instrument_type(nbu_rate.code),
+                    is_active=True,
+                )
 
-            saved = await self.rate_service.save_rate(
-                session,
-                nbu_rate,
-                rate_date,
-            )
+                await self.instrument_service.create(
+                    session,
+                    instrument,
+                )
 
-            if saved is not None:
-                saved_count += 1
+                saved = await self.rate_service.save_rate(
+                    session,
+                    nbu_rate,
+                    current_date,
+                )
+
+                if saved is not None:
+                    saved_count += 1
 
         await session.commit()
-
         return saved_count

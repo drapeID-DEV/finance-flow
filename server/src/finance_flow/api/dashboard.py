@@ -1,5 +1,4 @@
 
-from datetime import date
 
 from fastapi import APIRouter, Depends
 from sqlalchemy import func, select

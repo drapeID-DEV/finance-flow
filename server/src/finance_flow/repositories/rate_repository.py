@@ -110,3 +110,12 @@ class RateRepository:
             .order_by(Rate.date.asc(), Rate.instrument_id.asc())
         )
         return list(result.scalars().all())
+
+    async def get_latest_rate_date(
+        self,
+        session: AsyncSession,
+    ) -> date | None:
+        result = await session.execute(
+            select(func.max(Rate.date))
+        )
+        return result.scalar_one_or_none()

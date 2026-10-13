@@ -4,7 +4,8 @@ import httpx
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from finance_flow.dependencies import get_db_session
+from finance_flow.dependencies import get_current_admin, get_db_session
+from finance_flow.models.user import User
 from finance_flow.repositories.alert_repository import AlertRepository
 from finance_flow.repositories.instrument_repository import InstrumentRepository
 from finance_flow.repositories.rate_repository import RateRepository
@@ -23,6 +24,7 @@ router = APIRouter(
 @router.post("/run")
 async def run_collection(
     collection_date: date = Query(..., alias="date"),
+    current_user: User = Depends(get_current_admin),
     session: AsyncSession = Depends(get_db_session),
 ) -> dict[str, int]:
     async with httpx.AsyncClient() as client:

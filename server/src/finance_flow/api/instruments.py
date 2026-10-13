@@ -12,6 +12,7 @@ from finance_flow.dependencies import (
     get_db_session,
 )
 from finance_flow.models.instrument import Instrument
+from finance_flow.models.rate import Rate
 from finance_flow.models.user import User
 from finance_flow.repositories.alert_repository import AlertRepository
 from finance_flow.repositories.instrument_repository import InstrumentRepository
@@ -69,7 +70,7 @@ async def get_instruments(
         date.max,
     )
 
-    previous_rates_by_instrument = {}
+    previous_rates_by_instrument: dict[int, Rate] = {}
 
     for rate in previous_rates:
         current_latest = rates_by_instrument.get(rate.instrument_id)
