@@ -29,6 +29,7 @@ export function InstrumentsTable({
 						<th>Code</th>
 						<th>Name</th>
 						<th>Current rate</th>
+						<th>Daily change</th>
 						<th>Type</th>
 						<th>Status</th>
 						{isAdmin && <th>Action</th>}
@@ -60,6 +61,36 @@ export function InstrumentsTable({
 														'uk-UA'
 													)
 												: ''}
+										</div>
+									</div>
+								) : (
+									<span>—</span>
+								)}
+							</td>
+							<td>
+								{instrument.daily_change !== null &&
+								instrument.daily_change_percent !== null ? (
+									<div>
+										<strong>
+											{Number(instrument.daily_change) > 0
+												? '+'
+												: ''}
+											{Number(
+												instrument.daily_change
+											).toLocaleString('en-US', {
+												maximumFractionDigits: 8
+											})}
+										</strong>
+										<div className="instrument-rate-date">
+											{Number(
+												instrument.daily_change_percent
+											) > 0
+												? '+'
+												: ''}
+											{Number(
+												instrument.daily_change_percent
+											).toFixed(2)}
+											%
 										</div>
 									</div>
 								) : (

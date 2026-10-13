@@ -9,6 +9,9 @@ export interface Instrument {
 	current_rate: string | null;
 	rate_unit: number | null;
 	rate_date: string | null;
+	previous_rate: string | null;
+	daily_change: string | null;
+	daily_change_percent: string | null;
 }
 
 export interface InstrumentsResponse {

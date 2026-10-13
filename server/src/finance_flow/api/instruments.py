@@ -2,19 +2,17 @@ from datetime import date
 from decimal import Decimal
 from typing import Literal
 
-from sqlalchemy import func, select
-
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from finance_flow.dependencies import (
     get_current_admin,
-    get_current_user,
     get_db_session,
 )
-from finance_flow.models.user import User
 from finance_flow.models.instrument import Instrument
+from finance_flow.models.user import User
 from finance_flow.repositories.alert_repository import AlertRepository
 from finance_flow.repositories.instrument_repository import InstrumentRepository
 from finance_flow.repositories.rate_repository import RateRepository
@@ -33,8 +31,10 @@ rate_service = RateService(
     AlertService(AlertRepository()),
 )
 
+
 class UpdateInstrumentStatusRequest(BaseModel):
     is_active: bool
+
 
 @router.get("")
 async def get_instruments(
@@ -56,14 +56,32 @@ async def get_instruments(
     )
 
     latest_rates = await rate_repository.get_latest_for_instruments(
-    session,
-    [instrument.id for instrument in instruments],
+        session,
+        [instrument.id for instrument in instruments],
     )
 
-    rates_by_instrument = {
-        rate.instrument_id: rate
-        for rate in latest_rates
-    }
+    rates_by_instrument = {rate.instrument_id: rate for rate in latest_rates}
+
+    previous_rates = await rate_repository.get_history_for_instruments(
+        session,
+        [instrument.id for instrument in instruments],
+        date.min,
+        date.max,
+    )
+
+    previous_rates_by_instrument = {}
+
+    for rate in previous_rates:
+        current_latest = rates_by_instrument.get(rate.instrument_id)
+
+        if (
+            current_latest is not None
+            and rate.date < current_latest.date
+        ):
+            previous = previous_rates_by_instrument.get(rate.instrument_id)
+
+            if previous is None or rate.date > previous.date:
+                previous_rates_by_instrument[rate.instrument_id] = rate
 
     total = await repository.count_active(
         session,
@@ -94,9 +112,44 @@ async def get_instruments(
                     if instrument.id in rates_by_instrument
                     else None
                 ),
+                "previous_rate": (
+                    str(previous_rates_by_instrument[instrument.id].rate)
+                    if instrument.id in previous_rates_by_instrument
+                    else None
+                ),
+                "daily_change": (
+                    str(
+                        rates_by_instrument[instrument.id].rate
+                        - previous_rates_by_instrument[instrument.id].rate
+                    )
+                    if (
+                        instrument.id in rates_by_instrument
+                        and instrument.id in previous_rates_by_instrument
+                    )
+                    else None
+                ),
+                "daily_change_percent": (
+                    str(
+                        (
+                            rates_by_instrument[instrument.id].rate
+                            - previous_rates_by_instrument[instrument.id].rate
+                        )
+                        / previous_rates_by_instrument[instrument.id].rate
+                        * 100
+                    )
+                    if (
+                        instrument.id in rates_by_instrument
+                        and instrument.id in previous_rates_by_instrument
+                        and previous_rates_by_instrument[instrument.id].rate != 0
+                    )
+                    else None
+                ),
             }
             for instrument in instruments
         ],
+        "page": page,
+        "page_size": page_size,
+        "total": total,
     }
 
 
@@ -132,17 +185,12 @@ async def get_all_instruments(
     query = select(Instrument).where(*filters)
 
     result = await session.execute(
-        query
-        .order_by(Instrument.code)
-        .offset(offset)
-        .limit(page_size)
+        query.order_by(Instrument.code).offset(offset).limit(page_size)
     )
     instruments = list(result.scalars().all())
 
     count_result = await session.execute(
-        select(func.count())
-        .select_from(Instrument)
-        .where(*filters)
+        select(func.count()).select_from(Instrument).where(*filters)
     )
 
     return {
