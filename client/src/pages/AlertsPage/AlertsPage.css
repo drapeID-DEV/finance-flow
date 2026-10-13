@@ -108,6 +108,17 @@
     color: #fcd34d;
 }
 
+.alert-form-error {
+    margin: 0 0 16px;
+    padding: 12px 14px;
+    border: 1px solid #991b1b;
+    border-radius: 8px;
+    background: #450a0a;
+    color: #fecaca;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
 @media (max-width: 800px) {
     .alert-form-fields {
         grid-template-columns: 1fr;

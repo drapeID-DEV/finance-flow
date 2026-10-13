@@ -22,9 +22,11 @@ export function AlertForm({
 	const [instrumentId, setInstrumentId] = useState('');
 	const [direction, setDirection] = useState<AlertDirection>('above');
 	const [value, setValue] = useState('');
+	const [errorMessage, setErrorMessage] = useState('');
 
 	const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
 		event.preventDefault();
+		setErrorMessage('');
 
 		const numericValue = Number(value);
 		const numericInstrumentId = Number(instrumentId);
@@ -38,20 +40,46 @@ export function AlertForm({
 			return;
 		}
 
-		await onSubmit({
-			instrument_id: numericInstrumentId,
-			direction,
-			value: numericValue
-		});
+		try {
+			await onSubmit({
+				instrument_id: numericInstrumentId,
+				direction,
+				value: numericValue
+			});
 
-		setInstrumentId('');
-		setDirection('above');
-		setValue('');
+			setInstrumentId('');
+			setDirection('above');
+			setValue('');
+		} catch (error) {
+			const apiError = error as {
+				status?: number | string;
+				data?: { detail?: string };
+			};
+
+			if (
+				apiError.status === 409 ||
+				apiError.data?.detail === 'Alert already exists'
+			) {
+				setErrorMessage(
+					'An alert with this instrument, condition, and target rate already exists.'
+				);
+			} else {
+				setErrorMessage(
+					apiError.data?.detail ??
+						'Failed to create alert. Please try again.'
+				);
+			}
+		}
 	};
 
 	return (
 		<form className="alert-form" onSubmit={handleSubmit}>
 			<h2>Create price alert</h2>
+			{errorMessage && (
+				<p className="alert-form-error" role="alert">
+					{errorMessage}
+				</p>
+			)}
 			<div className="alert-form-fields">
 				<label>
 					Instrument

@@ -117,12 +117,10 @@ export function AlertNotificationListener() {
 					<div className="alert-toast-icon" aria-hidden="true">
 						!
 					</div>
-
 					<div className="alert-toast-content">
 						<strong>{notification.title}</strong>
 						<p>{notification.message}</p>
 					</div>
-
 					<button
 						className="alert-toast-close"
 						type="button"
