@@ -1,7 +1,7 @@
-import { useEffect, useState } from 'react';
-import { InstrumentComparisonChart } from './InstrumentComparisonChart';
+import { useState } from 'react';
 import type { Instrument } from '../../../../api/instrumentsApi';
 import { useGetInstrumentComparisonQuery } from '../../../../api/ratesApi';
+import { InstrumentComparisonChart } from './InstrumentComparisonChart';
 
 interface InstrumentComparisonSectionProps {
 	instruments: Instrument[];
@@ -16,21 +16,17 @@ export function InstrumentComparisonSection({
 	from,
 	to
 }: InstrumentComparisonSectionProps) {
-	const [compareCode, setCompareCode] = useState('');
+	const [selectedCompareCode, setSelectedCompareCode] = useState('');
 
 	const availableInstruments = instruments.filter(
 		(instrument) => instrument.code !== selectedCode
 	);
 
-	useEffect(() => {
-		if (
-			!availableInstruments.some(
-				(instrument) => instrument.code === compareCode
-			)
-		) {
-			setCompareCode(availableInstruments[0]?.code ?? '');
-		}
-	}, [availableInstruments, compareCode]);
+	const compareCode = availableInstruments.some(
+		(instrument) => instrument.code === selectedCompareCode
+	)
+		? selectedCompareCode
+		: (availableInstruments[0]?.code ?? '');
 
 	const {
 		data: comparisonData,
@@ -60,7 +56,9 @@ export function InstrumentComparisonSection({
 					Compare with
 					<select
 						value={compareCode}
-						onChange={(event) => setCompareCode(event.target.value)}
+						onChange={(event) =>
+							setSelectedCompareCode(event.target.value)
+						}
 					>
 						{availableInstruments.map((instrument) => (
 							<option key={instrument.id} value={instrument.code}>
@@ -70,7 +68,6 @@ export function InstrumentComparisonSection({
 					</select>
 				</label>
 			</div>
-
 			{isLoading ? (
 				<p className="analytics-message">Loading comparison...</p>
 			) : isError ? (

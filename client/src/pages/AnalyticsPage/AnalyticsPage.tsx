@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useGetInstrumentsQuery } from '../../api/instrumentsApi';
 import type { RateAggregation } from '../../api/ratesApi';
 import { AnalyticsControls } from './components/AnalyticsControls';
@@ -27,11 +27,11 @@ export default function AnalyticsPage() {
 		(instrument) => instrument.is_active
 	);
 
-	useEffect(() => {
-		if (!selectedCode && instruments.length > 0) {
-			setSelectedCode(instruments[0].code);
-		}
-	}, [instruments, selectedCode]);
+	const effectiveSelectedCode =
+		selectedCode &&
+		instruments.some((instrument) => instrument.code === selectedCode)
+			? selectedCode
+			: (instruments[0]?.code ?? '');
 
 	const {
 		from,
@@ -43,13 +43,13 @@ export default function AnalyticsPage() {
 		isHistoryError,
 		refetchHistory
 	} = useAnalyticsData({
-		selectedCode,
+		selectedCode: effectiveSelectedCode,
 		period,
 		aggregation
 	});
 
 	const selectedInstrument = instruments.find(
-		(instrument) => instrument.code === selectedCode
+		(instrument) => instrument.code === effectiveSelectedCode
 	);
 
 	if (isInstrumentsLoading) {
@@ -80,7 +80,7 @@ export default function AnalyticsPage() {
 			</header>
 			<AnalyticsControls
 				instruments={instruments}
-				selectedCode={selectedCode}
+				selectedCode={effectiveSelectedCode}
 				period={period}
 				aggregation={aggregation}
 				onInstrumentChange={setSelectedCode}
@@ -94,11 +94,11 @@ export default function AnalyticsPage() {
 			/>
 			<InstrumentComparisonSection
 				instruments={instruments}
-				selectedCode={selectedCode}
+				selectedCode={effectiveSelectedCode}
 				from={from}
 				to={to}
 			/>
-			{!selectedCode ? (
+			{!effectiveSelectedCode ? (
 				<AnalyticsState type="empty" />
 			) : isHistoryLoading ? (
 				<AnalyticsState type="loading" />

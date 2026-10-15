@@ -1,13 +1,10 @@
 import { useCallback, useState } from 'react';
-import type { FormEvent } from 'react';
-import type { Alert, AlertDirection } from '../../../api/alertApi';
-import {
-	useDeleteAlertMutation,
-	useUpdateAlertMutation
-} from '../../../api/alertApi';
+import type { Alert } from '../../../api/alertApi';
+import { useDeleteAlertMutation } from '../../../api/alertApi';
 import type { Instrument } from '../../../api/instrumentsApi';
 import { Button } from '../../../shared/ui/Button/Button';
 import { ConfirmModal } from '../../../shared/ui/ConfirmModal/ConfirmModal';
+import { AlertEditForm } from './AlertEditForm';
 
 interface AlertItemProps {
 	alert: Alert;
@@ -17,68 +14,14 @@ interface AlertItemProps {
 export function AlertItem({ alert, instrument }: AlertItemProps) {
 	const [isModalOpen, setIsModalOpen] = useState(false);
 	const [isEditing, setIsEditing] = useState(false);
-	const [direction, setDirection] = useState<AlertDirection>(alert.direction);
-	const [value, setValue] = useState(String(alert.value));
-	const [errorMessage, setErrorMessage] = useState('');
 
 	const [deleteAlert, { isLoading: isDeleting }] = useDeleteAlertMutation();
-	const [updateAlert, { isLoading: isUpdating }] = useUpdateAlertMutation();
 
 	const closeModal = useCallback(() => {
 		if (!isDeleting) {
 			setIsModalOpen(false);
 		}
 	}, [isDeleting]);
-
-	const startEditing = () => {
-		setDirection(alert.direction);
-		setValue(String(alert.value));
-		setErrorMessage('');
-		setIsEditing(true);
-	};
-
-	const handleUpdate = async (event: FormEvent<HTMLFormElement>) => {
-		event.preventDefault();
-		setErrorMessage('');
-
-		const numericValue = Number(value);
-
-		if (!Number.isFinite(numericValue) || numericValue <= 0) {
-			setErrorMessage('Target rate must be greater than zero.');
-			return;
-		}
-
-		try {
-			await updateAlert({
-				alertId: alert.id,
-				body: {
-					direction,
-					value: numericValue
-				}
-			}).unwrap();
-
-			setIsEditing(false);
-		} catch (error) {
-			const apiError = error as {
-				status?: number | string;
-				data?: { detail?: string };
-			};
-
-			if (
-				apiError.status === 409 ||
-				apiError.data?.detail === 'Alert already exists'
-			) {
-				setErrorMessage(
-					'An alert with this condition and target rate already exists.'
-				);
-			} else {
-				setErrorMessage(
-					apiError.data?.detail ??
-						'Failed to update alert. Please try again.'
-				);
-			}
-		}
-	};
 
 	const handleDelete = async () => {
 		try {
@@ -103,56 +46,11 @@ export function AlertItem({ alert, instrument }: AlertItemProps) {
 				</div>
 				<p>{instrument?.name ?? 'Unknown instrument'}</p>
 				{isEditing ? (
-					<form className="alert-edit-form" onSubmit={handleUpdate}>
-						{errorMessage && (
-							<p className="alert-form-error" role="alert">
-								{errorMessage}
-							</p>
-						)}
-						<label>
-							Condition
-							<select
-								value={direction}
-								onChange={(event) =>
-									setDirection(
-										event.target.value as AlertDirection
-									)
-								}
-							>
-								<option value="above">Rate goes above</option>
-								<option value="below">Rate goes below</option>
-							</select>
-						</label>
-						<label>
-							Target rate (UAH)
-							<input
-								type="number"
-								min="0.00000001"
-								step="any"
-								value={value}
-								onChange={(event) =>
-									setValue(event.target.value)
-								}
-								required
-							/>
-						</label>
-						<div className="alert-actions">
-							<Button type="submit" disabled={isUpdating}>
-								{isUpdating ? 'Saving...' : 'Save'}
-							</Button>
-							<Button
-								type="button"
-								variant="secondary"
-								disabled={isUpdating}
-								onClick={() => {
-									setIsEditing(false);
-									setErrorMessage('');
-								}}
-							>
-								Cancel
-							</Button>
-						</div>
-					</form>
+					<AlertEditForm
+						alert={alert}
+						onCancel={() => setIsEditing(false)}
+						onSaved={() => setIsEditing(false)}
+					/>
 				) : (
 					<>
 						<p className="alert-condition">
@@ -169,7 +67,10 @@ export function AlertItem({ alert, instrument }: AlertItemProps) {
 							</p>
 						)}
 						<div className="alert-actions">
-							<Button type="button" onClick={startEditing}>
+							<Button
+								type="button"
+								onClick={() => setIsEditing(true)}
+							>
 								Edit
 							</Button>
 							<Button
