@@ -11,3 +11,26 @@
 .content {
     padding: 32px;
 }
+
+@media (max-width: 768px) {
+    .app {
+        min-height: 100dvh;
+    }
+
+    .main-content {
+        width: 100%;
+        min-width: 0;
+    }
+
+    .content {
+        min-width: 0;
+        padding: 20px 16px calc(88px + env(safe-area-inset-bottom));
+    }
+}
+
+@media (max-width: 380px) {
+    .content {
+        padding-right: 12px;
+        padding-left: 12px;
+    }
+}
