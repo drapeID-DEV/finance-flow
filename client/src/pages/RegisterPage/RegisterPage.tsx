@@ -1,4 +1,5 @@
 import { Link, useNavigate } from 'react-router-dom';
+import { Eye, EyeOff } from 'lucide-react';
 import { useState } from 'react';
 import { useRegisterMutation } from '../../api/authApi';
 import '../AuthPage.css';
@@ -10,6 +11,8 @@ export default function RegisterPage() {
 	const [email, setEmail] = useState('');
 	const [password, setPassword] = useState('');
 	const [confirmPassword, setConfirmPassword] = useState('');
+	const [showPassword, setShowPassword] = useState(false);
+	const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 	const [error, setError] = useState('');
 	const [success, setSuccess] = useState('');
 
@@ -70,31 +73,75 @@ export default function RegisterPage() {
 					</label>
 					<label>
 						Password
-						<input
-							type="password"
-							value={password}
-							onChange={(event) =>
-								setPassword(event.target.value)
-							}
-							placeholder="At least 8 characters"
-							autoComplete="new-password"
-							minLength={8}
-							required
-						/>
+						<div className="auth-password-wrapper">
+							<input
+								type={showPassword ? 'text' : 'password'}
+								value={password}
+								onChange={(event) =>
+									setPassword(event.target.value)
+								}
+								placeholder="At least 8 characters"
+								autoComplete="new-password"
+								minLength={8}
+								required
+							/>
+							<button
+								type="button"
+								className="auth-password-toggle"
+								onClick={() =>
+									setShowPassword((visible) => !visible)
+								}
+								aria-label={
+									showPassword
+										? 'Hide password'
+										: 'Show password'
+								}
+								aria-pressed={showPassword}
+							>
+								{showPassword ? (
+									<EyeOff size={20} />
+								) : (
+									<Eye size={20} />
+								)}
+							</button>
+						</div>
 					</label>
 					<label>
 						Confirm password
-						<input
-							type="password"
-							value={confirmPassword}
-							onChange={(event) =>
-								setConfirmPassword(event.target.value)
-							}
-							placeholder="Repeat your password"
-							autoComplete="new-password"
-							minLength={8}
-							required
-						/>
+						<div className="auth-password-wrapper">
+							<input
+								type={showConfirmPassword ? 'text' : 'password'}
+								value={confirmPassword}
+								onChange={(event) =>
+									setConfirmPassword(event.target.value)
+								}
+								placeholder="Repeat your password"
+								autoComplete="new-password"
+								minLength={8}
+								required
+							/>
+							<button
+								type="button"
+								className="auth-password-toggle"
+								onClick={() =>
+									setShowConfirmPassword(
+										(visible) => !visible
+									)
+								}
+								aria-label={
+									showConfirmPassword
+										? 'Hide confirmation password'
+										: 'Show confirmation password'
+								}
+								aria-pressed={showConfirmPassword}
+							>
+								{showConfirmPassword ? (
+									<EyeOff size={20} />
+								) : (
+									<Eye size={20} />
+								)}
+							</button>
+						</div>
 					</label>
 					{error && <div className="auth-error">{error}</div>}
 					{success && <p role="status">{success}</p>}
