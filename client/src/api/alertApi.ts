@@ -18,6 +18,16 @@ export interface CreateAlertRequest {
 	value: number;
 }
 
+export interface UpdateAlertRequest {
+	direction: AlertDirection;
+	value: number;
+}
+
+export interface UpdateAlertArgs {
+	alertId: number;
+	body: UpdateAlertRequest;
+}
+
 export const alertApi = baseApi.injectEndpoints({
 	endpoints: (builder) => ({
 		getAlerts: builder.query<Alert[], void>({
@@ -29,6 +39,14 @@ export const alertApi = baseApi.injectEndpoints({
 			query: (body) => ({
 				url: '/alerts',
 				method: 'POST',
+				body
+			}),
+			invalidatesTags: ['Alert']
+		}),
+		updateAlert: builder.mutation<Alert, UpdateAlertArgs>({
+			query: ({ alertId, body }) => ({
+				url: `/alerts/${alertId}`,
+				method: 'PATCH',
 				body
 			}),
 			invalidatesTags: ['Alert']
@@ -46,5 +64,6 @@ export const alertApi = baseApi.injectEndpoints({
 export const {
 	useGetAlertsQuery,
 	useCreateAlertMutation,
+	useUpdateAlertMutation,
 	useDeleteAlertMutation
 } = alertApi;

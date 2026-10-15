@@ -1,3 +1,4 @@
+
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -50,6 +51,28 @@ class AlertRepository:
             .order_by(Alert.id)
         )
         return list(result.scalars().all())
+
+    async def exists_duplicate(
+        self,
+        session: AsyncSession,
+        user_id: int,
+        instrument_id: int,
+        direction: str,
+        value: object,
+        exclude_alert_id: int,
+    ) -> bool:
+        result = await session.execute(
+            select(Alert.id)
+            .where(
+                Alert.user_id == user_id,
+                Alert.instrument_id == instrument_id,
+                Alert.direction == direction,
+                Alert.value == value,
+                Alert.id != exclude_alert_id,
+            )
+            .limit(1)
+        )
+        return result.scalar_one_or_none() is not None
 
     async def delete(
         self,

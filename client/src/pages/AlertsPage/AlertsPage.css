@@ -119,6 +119,45 @@
     line-height: 1.5;
 }
 
+
+.alert-edit-form {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    margin-top: 16px;
+}
+
+.alert-edit-form label {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    font-size: 14px;
+}
+
+.alert-edit-form input,
+.alert-edit-form select {
+    width: 100%;
+    min-width: 0;
+    padding: 10px 12px;
+    border: 1px solid #4b5563;
+    border-radius: 8px;
+    color: #f9fafb;
+    background: #111827;
+    font: inherit;
+}
+
+.alert-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 12px;
+}
+
+.alert-actions .button {
+    align-self: flex-start;
+}
+
+
 @media (max-width: 800px) {
     .alert-form-fields {
         grid-template-columns: 1fr;

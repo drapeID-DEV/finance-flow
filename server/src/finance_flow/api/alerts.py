@@ -1,5 +1,7 @@
+
 from datetime import datetime
 from decimal import Decimal
+from typing import Literal
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, Field
@@ -23,7 +25,12 @@ rate_repository = RateRepository()
 
 class CreateAlertRequest(BaseModel):
     instrument_id: int
-    direction: str
+    direction: Literal["above", "below"]
+    value: Decimal = Field(gt=0)
+
+
+class UpdateAlertRequest(BaseModel):
+    direction: Literal["above", "below"]
     value: Decimal = Field(gt=0)
 
 
@@ -34,6 +41,17 @@ class AlertResponse(BaseModel):
     value: Decimal
     status: str
     triggered_at: datetime | None
+
+
+def to_alert_response(alert: object) -> AlertResponse:
+    return AlertResponse(
+        id=alert.id,  # type: ignore[attr-defined]
+        instrument_id=alert.instrument_id,  # type: ignore[attr-defined]
+        direction=alert.direction,  # type: ignore[attr-defined]
+        value=alert.value,  # type: ignore[attr-defined]
+        status=alert.status,  # type: ignore[attr-defined]
+        triggered_at=alert.triggered_at,  # type: ignore[attr-defined]
+    )
 
 
 @router.post(
@@ -64,8 +82,14 @@ async def create_alert(
         await session.commit()
 
     except ValueError as exc:
+        await session.rollback()
+        code = (
+            status.HTTP_409_CONFLICT
+            if str(exc) == "Alert already exists"
+            else status.HTTP_400_BAD_REQUEST
+        )
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
+            status_code=code,
             detail=str(exc),
         ) from exc
 
@@ -76,14 +100,7 @@ async def create_alert(
             detail="Alert already exists",
         ) from exc
 
-    return AlertResponse(
-        id=alert.id,
-        instrument_id=alert.instrument_id,
-        direction=alert.direction,
-        value=alert.value,
-        status=alert.status,
-        triggered_at=alert.triggered_at,
-    )
+    return to_alert_response(alert)
 
 
 @router.get(
@@ -98,18 +115,74 @@ async def get_alerts(
         session,
         user_id=current_user.id,
     )
+    return [to_alert_response(alert) for alert in alerts]
 
-    return [
-        AlertResponse(
-            id=alert.id,
-            instrument_id=alert.instrument_id,
-            direction=alert.direction,
-            value=alert.value,
-            status=alert.status,
-            triggered_at=alert.triggered_at,
+
+@router.patch(
+    "/{alert_id}",
+    response_model=AlertResponse,
+)
+async def update_alert(
+    alert_id: int,
+    request: UpdateAlertRequest,
+    current_user: User = Depends(get_current_user),
+    session: AsyncSession = Depends(get_db_session),
+) -> AlertResponse:
+    alert = await alert_service.repository.get_by_id(
+        session,
+        alert_id=alert_id,
+    )
+
+    if alert is None or alert.user_id != current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Alert not found",
         )
-        for alert in alerts
-    ]
+
+    try:
+        latest_rate = await rate_repository.get_latest_by_instrument(
+            session,
+            instrument_id=alert.instrument_id,
+        )
+
+        updated_alert = await alert_service.update_alert(
+            session,
+            user_id=current_user.id,
+            alert_id=alert_id,
+            direction=request.direction,
+            value=request.value,
+            current_rate=latest_rate.rate if latest_rate else None,
+        )
+
+        if updated_alert is None:
+            await session.rollback()
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Alert not found",
+            )
+
+        await session.commit()
+
+    except ValueError as exc:
+        await session.rollback()
+        code = (
+            status.HTTP_409_CONFLICT
+            if str(exc) == "Alert already exists"
+            else status.HTTP_400_BAD_REQUEST
+        )
+        raise HTTPException(
+            status_code=code,
+            detail=str(exc),
+        ) from exc
+
+    except IntegrityError as exc:
+        await session.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Alert already exists",
+        ) from exc
+
+    return to_alert_response(updated_alert)
 
 
 @router.delete("/{alert_id}", status_code=status.HTTP_204_NO_CONTENT)
