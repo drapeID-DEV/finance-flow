@@ -19,34 +19,48 @@ settings = get_settings()
 
 env_values = dotenv_values(".env")
 
-database_url = (
+test_database_url = (
     os.getenv("TEST_DATABASE_URL")
     or env_values.get("TEST_DATABASE_URL")
-    or ""
 )
 
-if not database_url:
+migration_database_url = os.getenv("ALEMBIC_DATABASE_URL")
+
+if migration_database_url:
+    if os.getenv("ALLOW_PRODUCTION_MIGRATIONS") != "true":
+        raise RuntimeError(
+            "Set ALLOW_PRODUCTION_MIGRATIONS=true to run "
+            "migrations against ALEMBIC_DATABASE_URL."
+        )
+
+    database_url = migration_database_url
+elif test_database_url:
+    database_url = test_database_url
+
+    parsed_url = make_url(database_url)
+    if parsed_url.database != "finance_flow_test":
+        raise RuntimeError(
+            "Alembic is allowed to run only on finance_flow_test. "
+            f"Current database: {parsed_url.database!r}"
+        )
+else:
     raise RuntimeError(
-        "TEST_DATABASE_URL is missing in environment and .env"
+        "Set TEST_DATABASE_URL for tests or "
+        "ALEMBIC_DATABASE_URL for explicitly authorized migrations."
     )
 
 parsed_url = make_url(database_url)
 
-if parsed_url.database != "finance_flow_test":
-    raise RuntimeError(
-        "Alembic is allowed to run only on finance_flow_test. "
-        f"Current database: {parsed_url.database!r}"
-    )
-
-
-database_url = database_url.replace(
-    "postgresql+asyncpg://",
-    "postgresql+psycopg://",
-)
+if parsed_url.drivername in {
+    "postgresql",
+    "postgresql+asyncpg",
+    "postgresql+psycopg2",
+}:
+    parsed_url = parsed_url.set(drivername="postgresql+psycopg")
 
 config.set_main_option(
     "sqlalchemy.url",
-    database_url,
+    parsed_url.render_as_string(hide_password=False),
 )
 
 target_metadata = Base.metadata

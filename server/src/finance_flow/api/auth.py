@@ -1,5 +1,5 @@
 from datetime import UTC, datetime
-
+from finance_flow.config import get_settings
 from fastapi import APIRouter, Cookie, Depends, HTTPException, Response, status
 from pydantic import BaseModel, EmailStr
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -21,7 +21,7 @@ from finance_flow.security import verify_password
 from finance_flow.services.user_service import UserService
 
 router = APIRouter(prefix="/api/v1/auth", tags=["auth"])
-
+settings = get_settings()
 repository = UserRepository()
 refresh_token_repository = RefreshTokenRepository()
 service = UserService(repository)
@@ -125,7 +125,7 @@ async def login(
         key="access_token",
         value=access_token,
         httponly=True,
-        secure=False,
+        secure=settings.cookie_secure,
         samesite="lax",
         max_age=15 * 60,
         path="/",
@@ -135,7 +135,7 @@ async def login(
         key="refresh_token",
         value=refresh_token,
         httponly=True,
-        secure=False,
+        secure=settings.cookie_secure,
         samesite="lax",
         max_age=7 * 24 * 60 * 60,
         path="/api/v1/auth",
@@ -205,7 +205,7 @@ async def refresh(
         key="access_token",
         value=access_token,
         httponly=True,
-        secure=False,
+        secure=settings.cookie_secure,
         samesite="lax",
         max_age=15 * 60,
         path="/",
@@ -214,7 +214,7 @@ async def refresh(
         key="refresh_token",
         value=new_refresh_token,
         httponly=True,
-        secure=False,
+        secure=settings.cookie_secure,
         samesite="lax",
         max_age=7 * 24 * 60 * 60,
         path="/api/v1/auth",
@@ -242,7 +242,7 @@ async def logout(
     response.delete_cookie(
         key="access_token",
         httponly=True,
-        secure=False,
+        secure=settings.cookie_secure,
         samesite="lax",
         path="/",
     )
@@ -250,7 +250,7 @@ async def logout(
     response.delete_cookie(
         key="refresh_token",
         httponly=True,
-        secure=False,
+        secure=settings.cookie_secure,
         samesite="lax",
         path="/api/v1/auth",
     )

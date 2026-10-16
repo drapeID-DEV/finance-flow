@@ -8,7 +8,6 @@ from finance_flow.config import get_settings
 
 ALGORITHM = "HS256"
 
-
 def create_access_token(user_id: int) -> str:
     settings = get_settings()
 

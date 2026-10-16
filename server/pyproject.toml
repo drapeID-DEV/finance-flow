@@ -20,6 +20,7 @@ dependencies = [
     "pwdlib[argon2]",
     "PyJWT",
     "email-validator",
+    "python-dotenv",
     "apscheduler>=3.10,<4"
 ]
 
