@@ -1,5 +1,6 @@
+
 from datetime import UTC, datetime
-from finance_flow.config import get_settings
+
 from fastapi import APIRouter, Cookie, Depends, HTTPException, Response, status
 from pydantic import BaseModel, EmailStr
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -10,6 +11,7 @@ from finance_flow.auth import (
     get_refresh_token_expiry,
     hash_refresh_token,
 )
+from finance_flow.config import get_settings
 from finance_flow.dependencies import get_current_user, get_db_session
 from finance_flow.models.refresh_token import RefreshToken
 from finance_flow.models.user import User
@@ -126,7 +128,7 @@ async def login(
         value=access_token,
         httponly=True,
         secure=settings.cookie_secure,
-        samesite="lax",
+        samesite="none",
         max_age=15 * 60,
         path="/",
     )
@@ -136,13 +138,12 @@ async def login(
         value=refresh_token,
         httponly=True,
         secure=settings.cookie_secure,
-        samesite="lax",
+        samesite="none",
         max_age=7 * 24 * 60 * 60,
         path="/api/v1/auth",
     )
 
     return LoginResponse(message="Login successful")
-
 
 
 @router.post("/refresh", response_model=LoginResponse)
@@ -206,7 +207,7 @@ async def refresh(
         value=access_token,
         httponly=True,
         secure=settings.cookie_secure,
-        samesite="lax",
+        samesite="none",
         max_age=15 * 60,
         path="/",
     )
@@ -215,13 +216,12 @@ async def refresh(
         value=new_refresh_token,
         httponly=True,
         secure=settings.cookie_secure,
-        samesite="lax",
+        samesite="none",
         max_age=7 * 24 * 60 * 60,
         path="/api/v1/auth",
     )
 
     return LoginResponse(message="Tokens refreshed successfully")
-
 
 
 @router.post("/logout")
@@ -243,7 +243,7 @@ async def logout(
         key="access_token",
         httponly=True,
         secure=settings.cookie_secure,
-        samesite="lax",
+        samesite="none",
         path="/",
     )
 
@@ -251,7 +251,7 @@ async def logout(
         key="refresh_token",
         httponly=True,
         secure=settings.cookie_secure,
-        samesite="lax",
+        samesite="none",
         path="/api/v1/auth",
     )
 
